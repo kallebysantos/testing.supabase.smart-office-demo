@@ -30,7 +30,6 @@ interface RoomWithSensorData extends Room {
   currentNoiseLevel?: number
   currentAirQuality?: number
   lastUpdated?: string
-  isUpdating?: boolean
 }
 
 export default function RoomsPage() {
@@ -116,12 +115,12 @@ export default function RoomsPage() {
           console.log('Event type:', payload.eventType)
           console.log('New reading:', payload.new)
           
-          // Update the specific room with glow effect (no full page refresh)
+          // Update the specific room (no full page refresh)
           if (payload.eventType === 'INSERT' && payload.new) {
             const newReading = payload.new as SensorReading
-            console.log('Updating room:', newReading.room_id, 'with glow effect')
+            console.log('Updating room:', newReading.room_id)
             
-            // Update the room data and trigger glow in a single state update
+            // Update the room data without glow effect
             setRooms(prevRooms => 
               prevRooms.map(room => 
                 room.id === newReading.room_id
@@ -131,23 +130,11 @@ export default function RoomsPage() {
                       currentTemperature: newReading.temperature,
                       currentNoiseLevel: newReading.noise_level,
                       currentAirQuality: newReading.air_quality,
-                      lastUpdated: newReading.timestamp,
-                      isUpdating: true
+                      lastUpdated: newReading.timestamp
                     }
                   : room
               )
             )
-            
-            // Remove the glow after 2 seconds
-            setTimeout(() => {
-              setRooms(prevRooms => 
-                prevRooms.map(room => 
-                  room.id === newReading.room_id
-                    ? { ...room, isUpdating: false }
-                    : room
-                )
-              )
-            }, 2000)
           }
         }
       )
@@ -250,11 +237,7 @@ export default function RoomsPage() {
               const statusColor = getStatusColor(status)
 
               return (
-                <Card key={room.id} className={`overflow-hidden hover:shadow-lg transition-all duration-500 ${
-                  room.isUpdating 
-                    ? 'shadow-lg shadow-yellow-200 bg-gradient-to-br from-yellow-50 to-white border-yellow-200' 
-                    : 'shadow-sm'
-                }`}>
+                <Card key={room.id} className="overflow-hidden hover:shadow-lg transition-shadow shadow-sm">
                   <div className="relative">
                     {/* Room Image */}
                     {room.image_url ? (
