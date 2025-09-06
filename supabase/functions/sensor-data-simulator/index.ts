@@ -87,20 +87,16 @@ class SmartSensorDataGenerator {
       }
     }
     
-    // Make changes more volatile for better demo visualization
+    // Ensure consistency with previous reading (realistic gradual changes)
     if (previousOccupancy !== undefined) {
-      // 30% chance of significant change (more dramatic for demos)
-      if (Math.random() < 0.3) {
-        // Large change: people entering/leaving in groups
-        const maxChange = Math.max(2, Math.floor(room.capacity * 0.5))
-        const change = Math.floor((Math.random() - 0.5) * 2 * maxChange)
-        targetOccupancy = Math.max(0, Math.min(room.capacity, previousOccupancy + change))
-      } else {
-        // Smaller, more gradual change
-        const maxChange = Math.max(1, Math.floor(room.capacity * 0.3))
-        const change = Math.floor((Math.random() - 0.5) * 2 * maxChange)
-        targetOccupancy = Math.max(0, Math.min(room.capacity, previousOccupancy + change))
-      }
+      const maxChange = Math.max(1, Math.floor(room.capacity * 0.2)) // Max 20% capacity change
+      const change = Math.floor((Math.random() - 0.5) * 2 * maxChange)
+      
+      // Gradually move toward target occupancy
+      const direction = targetOccupancy > previousOccupancy ? 1 : -1
+      const consistentChange = Math.min(Math.abs(change), Math.abs(targetOccupancy - previousOccupancy))
+      
+      targetOccupancy = previousOccupancy + (direction * consistentChange)
     }
     
     return Math.max(0, Math.min(room.capacity, targetOccupancy))
@@ -122,65 +118,52 @@ class SmartSensorDataGenerator {
       targetTemperature = this.normalTemperature + (Math.random() - 0.5) * 1
     }
     
-    // Make temperature changes more noticeable for demos
+    // Smooth temperature transitions
     if (previousTemp !== undefined) {
-      // 25% chance of more dramatic temperature swing
-      if (Math.random() < 0.25) {
-        const maxTempChange = 1.5 // Larger change for demo visibility
-        const change = Math.max(-maxTempChange, Math.min(maxTempChange, targetTemperature - previousTemp))
-        targetTemperature = previousTemp + change
-      } else {
-        const maxTempChange = 0.8 // Slightly more than original for better visibility
-        const change = Math.max(-maxTempChange, Math.min(maxTempChange, targetTemperature - previousTemp))
-        targetTemperature = previousTemp + change
-      }
+      const maxTempChange = 0.3 // Max 0.3°F change per reading
+      const change = Math.max(-maxTempChange, Math.min(maxTempChange, targetTemperature - previousTemp))
+      targetTemperature = previousTemp + change
     }
     
-    // Add more variation for demo visibility
-    targetTemperature += (Math.random() - 0.5) * 0.6
+    // Add slight random variation for realism
+    targetTemperature += (Math.random() - 0.5) * 0.2
     
     // Round to 1 decimal place
     return Math.round(targetTemperature * 10) / 10
   }
 
-  // Generate noise level based on occupancy (more dramatic for demos)
+  // Generate noise level based on occupancy
   generateNoiseLevel(room: Room, occupancy: number): number {
     const baseNoise = 32 // Quiet office ambient noise
     
     if (occupancy === 0) {
-      return baseNoise + (Math.random() * 8) // Slightly more variation
+      return baseNoise + (Math.random() * 4) // Very quiet
     }
     
-    // More dramatic noise increases with occupancy
-    const occupancyNoise = 38 + (occupancy * 5) + (Math.random() * 12)
+    // Noise increases with occupancy (conversation)
+    const occupancyNoise = 40 + (occupancy * 3) + (Math.random() * 6)
     
-    // Add occasional noise spikes for demo interest
-    const spikeChance = Math.random() < 0.15 ? 1.3 : 1.0
+    // Larger rooms can amplify noise slightly
+    const roomFactor = room.capacity > 16 ? 1.1 : 1.0
     
-    // Larger rooms can amplify noise more dramatically
-    const roomFactor = room.capacity > 16 ? 1.4 : 1.1
+    const totalNoise = occupancyNoise * roomFactor
     
-    const totalNoise = occupancyNoise * roomFactor * spikeChance
-    
-    return Math.round(Math.max(28, Math.min(80, totalNoise)) * 10) / 10
+    return Math.round(Math.max(30, Math.min(70, totalNoise)) * 10) / 10
   }
 
-  // Generate air quality (degrades with occupancy, more dramatic for demos)
+  // Generate air quality (degrades with occupancy)
   generateAirQuality(room: Room, occupancy: number): number {
     const baseQuality = 88 // Good office air quality
     
-    // More dramatic occupancy effect on air quality
-    const occupancyEffect = (occupancy / room.capacity) * 25
+    // Occupancy degrades air quality
+    const occupancyEffect = (occupancy / room.capacity) * 15
     
-    // Larger random variation for demo visibility
-    const randomVariation = (Math.random() - 0.5) * 12
+    // Random variation
+    const randomVariation = (Math.random() - 0.5) * 8
     
-    // Occasional air quality events for demo interest
-    const eventFactor = Math.random() < 0.1 ? (Math.random() * 10 - 5) : 0
+    const airQuality = baseQuality - occupancyEffect + randomVariation
     
-    const airQuality = baseQuality - occupancyEffect + randomVariation + eventFactor
-    
-    return Math.round(Math.max(55, Math.min(100, airQuality)))
+    return Math.round(Math.max(65, Math.min(100, airQuality)))
   }
 }
 

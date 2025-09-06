@@ -102,12 +102,12 @@ export default function RoomsPage() {
     const channelName = `rooms-sensor-updates-${Date.now()}`
     console.log('Setting up subscription with channel:', channelName)
     
-    const channel = supabase
-      .channel(channelName)
+    // Simple subscription setup
+    const channel = supabase.channel(channelName)
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'sensor_readings'
         },
@@ -160,11 +160,11 @@ export default function RoomsPage() {
         }
       })
 
-    // Backup refresh only every 10 minutes (real-time should handle most updates)
+    // Backup refresh only every 5 minutes now that real-time is working
     const interval = setInterval(() => {
-      console.log('Backup refresh triggered (10min interval)')
+      console.log('Backup refresh triggered (5min safety)')
       fetchRoomsData()
-    }, 600000) // Every 10 minutes as backup only
+    }, 300000) // Every 5 minutes as safety backup only
 
     return () => {
       console.log('Cleaning up subscription')

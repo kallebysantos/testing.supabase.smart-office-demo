@@ -237,6 +237,15 @@ COMMENT ON TABLE facility_alerts IS 'System alerts and notifications';
 COMMENT ON TABLE room_embeddings IS 'Vector embeddings for semantic search';
 
 -- ============================================================================
+-- REAL-TIME CONFIGURATION
+-- ============================================================================
+
+-- Enable real-time updates for critical tables
+ALTER PUBLICATION supabase_realtime ADD TABLE sensor_readings;
+ALTER PUBLICATION supabase_realtime ADD TABLE room_bookings;
+ALTER PUBLICATION supabase_realtime ADD TABLE facility_alerts;
+
+-- ============================================================================
 -- END OF SCHEMA
 -- ============================================================================
 
