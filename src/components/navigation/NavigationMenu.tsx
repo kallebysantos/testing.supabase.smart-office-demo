@@ -78,20 +78,6 @@ const navigationItems: NavigationItem[] = [
     icon: BarChart3,
     roles: ['facilities', 'admin'],
     description: 'Usage patterns and insights'
-  },
-  {
-    title: 'Alerts',
-    href: '/alerts',
-    icon: AlertTriangle,
-    roles: ['facilities', 'admin'],
-    description: 'System notifications and issues'
-  },
-  {
-    title: 'Raw Data',
-    href: '/raw-data',
-    icon: Database,
-    roles: ['admin'],
-    description: 'Live sensor data stream'
   }
 ]
 

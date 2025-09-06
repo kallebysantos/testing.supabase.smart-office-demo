@@ -123,7 +123,7 @@ class LawFirmMeetingGenerator {
   }
 }
 
-// Smart booking scheduler
+// Smart booking scheduler for realistic conference room bookings
 class BookingScheduler {
   private users: UserProfile[]
   
@@ -131,77 +131,114 @@ class BookingScheduler {
     this.users = users
   }
 
-  // Find rooms that are currently available for booking
-  async findAvailableRooms(
+  // Check if a specific room is available for a time slot
+  async isRoomAvailable(
     supabase: any, 
-    rooms: Room[], 
+    roomId: string, 
     startTime: Date, 
     endTime: Date
-  ): Promise<Room[]> {
-    // Get existing bookings that overlap with our proposed time
+  ): Promise<boolean> {
+    // Check for any overlapping bookings for this specific room
     const { data: conflictingBookings, error } = await supabase
       .from('room_bookings')
-      .select('room_id')
-      .or(`and(start_time.lte.${startTime.toISOString()},end_time.gt.${startTime.toISOString()}),and(start_time.lt.${endTime.toISOString()},end_time.gte.${endTime.toISOString()}),and(start_time.gte.${startTime.toISOString()},end_time.lte.${endTime.toISOString()})`)
+      .select('id')
+      .eq('room_id', roomId)
+      .or(`and(start_time.lt.${endTime.toISOString()},end_time.gt.${startTime.toISOString()})`)
 
     if (error) {
-      console.warn('Error checking existing bookings:', error)
-      return rooms // If we can't check, assume all rooms are available
+      console.warn('Error checking room availability:', error)
+      return true // If we can't check, assume available
     }
 
-    const bookedRoomIds = new Set(conflictingBookings?.map((b: any) => b.room_id) || [])
-    return rooms.filter(room => !bookedRoomIds.has(room.id))
+    return (conflictingBookings?.length || 0) === 0
   }
 
-  // Generate realistic booking time slots
+  // Generate realistic booking time slots for next 3 weeks
   generateBookingSlots(): { start: Date; end: Date; duration: number }[] {
-    const now = new Date()
     const slots: { start: Date; end: Date; duration: number }[] = []
+    const now = new Date()
+    const threeWeeksFromNow = new Date(now.getTime() + (21 * 24 * 60 * 60 * 1000)) // 3 weeks
     
-    // Generate bookings: 2 hours in the past, current, and 4 hours in the future
-    // This creates a mix of completed, active, and upcoming bookings
-    for (let i = -4; i < 8; i++) { // -4 to +7 = 12 slots total (6 hours range)
-      const slotStart = new Date(now.getTime() + (i * 30 * 60 * 1000)) // Every 30 minutes
-      
-      const hour = slotStart.getHours()
-      const dayOfWeek = slotStart.getDay() // 0 = Sunday, 6 = Saturday
+    // Start from today and go 3 weeks into the future
+    let currentDate = new Date(now)
+    currentDate.setHours(0, 0, 0, 0) // Start at midnight
+    
+    while (currentDate <= threeWeeksFromNow) {
+      const dayOfWeek = currentDate.getDay() // 0 = Sunday, 6 = Saturday
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
       
-      // More lenient filtering for demo purposes
-      // Reduced restrictions for night hours (50% chance to skip instead of 95%)
-      if ((hour >= 22 || hour < 6) && Math.random() > 0.5) {
-        continue // 50% chance to skip night hours for demos
+      // Skip weekends for most bookings (only 10% chance of weekend meetings)
+      if (isWeekend && Math.random() > 0.1) {
+        currentDate.setDate(currentDate.getDate() + 1)
+        continue
       }
       
-      // More meetings on weekends for demo (50% chance instead of 15%)
-      if (isWeekend && Math.random() > 0.5) {
-        continue // 50% chance to skip weekend slots for demos
+      // Generate time slots for this day
+      // Business hours: 8 AM to 6 PM on weekdays, 10 AM to 4 PM on weekends
+      const startHour = isWeekend ? 10 : 8
+      const endHour = isWeekend ? 16 : 18
+      
+      // Generate slots in 30-minute intervals, starting on the half-hour
+      for (let hour = startHour; hour < endHour; hour++) {
+        for (let minute of [0, 30]) { // On the hour and half-hour
+          const slotStart = new Date(currentDate)
+          slotStart.setHours(hour, minute, 0, 0)
+          
+          // Skip past time slots (but keep some recent past for completed bookings)
+          const hoursFromNow = (slotStart.getTime() - now.getTime()) / (1000 * 60 * 60)
+          if (hoursFromNow < -24) continue // Only keep last 24 hours of past bookings
+          
+          // Determine meeting duration based on time of day and patterns
+          let possibleDurations: number[]
+          
+          if (hour === 8 || hour === 17) {
+            // Early morning or late afternoon - shorter meetings
+            possibleDurations = [30, 60]
+          } else if (hour >= 12 && hour <= 14) {
+            // Lunch time - mix of short and long meetings
+            possibleDurations = [30, 60, 90]
+          } else if (isWeekend) {
+            // Weekend meetings are typically shorter
+            possibleDurations = [30, 60]
+          } else {
+            // Regular business hours - full range
+            possibleDurations = [30, 60, 90, 120]
+          }
+          
+          const duration = possibleDurations[Math.floor(Math.random() * possibleDurations.length)]
+          const slotEnd = new Date(slotStart.getTime() + (duration * 60 * 1000))
+          
+          // Don't create meetings that go beyond business hours
+          if (slotEnd.getHours() > endHour) continue
+          
+          // Probabilistic booking - not every slot should be booked
+          // Higher probability during peak hours (10 AM - 4 PM)
+          let bookingProbability = 0.3 // Base 30% chance
+          
+          if (hour >= 10 && hour <= 16) {
+            bookingProbability = 0.5 // 50% chance during peak hours
+          } else if (hour === 9 || hour === 17) {
+            bookingProbability = 0.4 // 40% chance during shoulder hours
+          }
+          
+          // Reduce probability for past slots (completed meetings)
+          if (hoursFromNow < 0) {
+            bookingProbability *= 0.7 // 70% of normal probability
+          }
+          
+          // Only add slot if random chance succeeds
+          if (Math.random() < bookingProbability) {
+            slots.push({
+              start: slotStart,
+              end: slotEnd,
+              duration
+            })
+          }
+        }
       }
       
-      // More lenient weekday hours for demos (6 AM to 10 PM)
-      if (!isWeekend && (hour < 6 || hour > 22)) continue
-      
-      // Weekend meetings have different duration patterns (shorter, more casual)
-      let possibleDurations: number[]
-      if (isWeekend) {
-        possibleDurations = [30, 60] // Shorter weekend meetings
-      } else if (hour >= 22 || hour < 6) {
-        possibleDurations = [30, 45] // Very short late-night meetings
-      } else {
-        possibleDurations = [30, 60, 90, 120] // Normal business hour meetings
-      }
-      
-      const duration = possibleDurations[Math.floor(Math.random() * possibleDurations.length)]
-      const slotEnd = new Date(slotStart.getTime() + (duration * 60 * 1000))
-      
-      // Don't book meetings that end after 6 PM on weekdays (unless it's a night meeting)
-      if (!isWeekend && !(hour >= 22 || hour < 6) && slotEnd.getHours() > 18) continue
-      
-      slots.push({
-        start: slotStart,
-        end: slotEnd,
-        duration
-      })
+      // Move to next day
+      currentDate.setDate(currentDate.getDate() + 1)
     }
     
     return slots
@@ -295,44 +332,46 @@ Deno.serve(async (req) => {
     const meetingGenerator = new LawFirmMeetingGenerator(openaiApiKey)
     const scheduler = new BookingScheduler(users)
 
-    // Generate booking time slots
+    // Generate booking time slots for next 3 weeks
     const timeSlots = scheduler.generateBookingSlots()
-    console.log(`⏰ Generated ${timeSlots.length} potential booking slots`)
+    console.log(`⏰ Generated ${timeSlots.length} potential booking slots over 3 weeks`)
 
     let totalBookings = 0
     const createdBookings: RoomBooking[] = []
+    
+    // Generate meeting titles in advance for efficiency
+    const meetingTitles = await meetingGenerator.generateMeetingTitles(Math.min(100, timeSlots.length * 2))
+    let titleIndex = 0
 
-    // Process each time slot
+    // Process each time slot and try to book rooms
     for (const slot of timeSlots) {
-      // Find available rooms for this time slot
-      const availableRooms = await scheduler.findAvailableRooms(
-        supabase, 
-        rooms, 
-        slot.start, 
-        slot.end
-      )
-
-      if (availableRooms.length === 0) {
-        console.log(`❌ No available rooms for ${slot.start.toLocaleTimeString()} - ${slot.end.toLocaleTimeString()}`)
-        continue
-      }
-
-      // Decide how many rooms to book for this slot (25-50% of available rooms)
-      const minBookings = Math.max(1, Math.floor(availableRooms.length * 0.25))
-      const maxBookings = Math.max(1, Math.floor(availableRooms.length * 0.5))
-      const bookingsToCreate = Math.floor(Math.random() * (maxBookings - minBookings + 1)) + minBookings
-
-      // Randomly select rooms to book
-      const shuffledRooms = availableRooms.sort(() => 0.5 - Math.random())
-      const roomsToBook = shuffledRooms.slice(0, bookingsToCreate)
-
-      // Generate meeting titles
-      const meetingTitles = await meetingGenerator.generateMeetingTitles(roomsToBook.length)
-
-      // Create bookings
-      for (let i = 0; i < roomsToBook.length; i++) {
-        const room = roomsToBook[i]
-        const meetingTitle = meetingTitles[i] || 'Legal Strategy Meeting'
+      // Randomly select 1-3 rooms to try booking for this time slot
+      const roomsToTry = Math.min(3, Math.max(1, Math.floor(Math.random() * 3) + 1))
+      
+      // Shuffle rooms for random selection
+      const shuffledRooms = [...rooms].sort(() => 0.5 - Math.random())
+      let bookingsCreatedForSlot = 0
+      
+      // Try to book random rooms for this slot
+      for (let i = 0; i < roomsToTry && i < shuffledRooms.length; i++) {
+        const room = shuffledRooms[i]
+        
+        // Check if this room is available for this time slot
+        const isAvailable = await scheduler.isRoomAvailable(
+          supabase,
+          room.id,
+          slot.start,
+          slot.end
+        )
+        
+        if (!isAvailable) {
+          continue // Try next room
+        }
+        
+        // Create a booking for this room
+        const meetingTitle = meetingTitles[titleIndex % meetingTitles.length] || 'Legal Strategy Meeting'
+        titleIndex++
+        
         const organizer = scheduler.selectRandomOrganizer()
         const attendeeCount = scheduler.calculateAttendeeCount(room, meetingTitle)
 
@@ -346,6 +385,14 @@ Deno.serve(async (req) => {
         }
 
         createdBookings.push(booking)
+        bookingsCreatedForSlot++
+        
+        // Limit bookings per slot to avoid overwhelming the system
+        if (bookingsCreatedForSlot >= 2) break
+      }
+      
+      if (bookingsCreatedForSlot > 0) {
+        console.log(`✅ Created ${bookingsCreatedForSlot} booking(s) for ${slot.start.toLocaleDateString()} ${slot.start.toLocaleTimeString()}`)
       }
     }
 
@@ -368,18 +415,36 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`🎉 Booking simulation completed: ${totalBookings} new bookings created`)
+    const now = new Date()
+    const threeWeeksFromNow = new Date(now.getTime() + (21 * 24 * 60 * 60 * 1000))
+    
+    console.log(`🎉 Realistic booking simulation completed!`)
+    console.log(`📅 Booking window: ${now.toLocaleDateString()} to ${threeWeeksFromNow.toLocaleDateString()}`)
+    console.log(`📊 Results: ${totalBookings} new bookings created across ${timeSlots.length} time slots`)
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Law firm booking simulation completed',
+        message: 'Realistic conference room booking simulation completed',
         stats: {
           totalBookings,
           roomCount: rooms.length,
           userCount: users.length,
           timeSlotsProcessed: timeSlots.length,
-          bookingsCreated: createdBookings.length
+          bookingsCreated: createdBookings.length,
+          dateRange: {
+            startDate: now.toISOString(),
+            endDate: threeWeeksFromNow.toISOString(),
+            daysGenerated: 21
+          },
+          features: [
+            'Half-hour time slots on the hour and half-hour',
+            'Conflict detection and avoidance',
+            '3-week booking window',
+            'Business hours scheduling (8 AM - 6 PM weekdays)',
+            'Realistic meeting durations (30min, 1hr, 1.5hr, 2hr)',
+            'Past bookings included for demo (last 24 hours)'
+          ]
         }
       }),
       {

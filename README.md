@@ -1,72 +1,120 @@
 # Smart Office Dashboard 🏢
 
-A sophisticated conference room utilization and analytics dashboard built for enterprise tradeshows. This application demonstrates real-time IoT sensor data processing capabilities in a professional law firm environment.
+A comprehensive conference room utilization and analytics platform built for **Dewey, Cheatham & Howe Law Firm**. This Next.js application demonstrates enterprise-grade IoT sensor data processing, real-time monitoring, and advanced analytics capabilities using Supabase as the backend.
 
-**Company**: Dewey, Cheatham & Howe (Law Firm)  
-**Purpose**: Enterprise booth demo showcasing modern office technology
+## 🎯 Overview
+
+This smart office dashboard provides real-time insights into conference room utilization, environmental conditions, and booking patterns. Built as a sophisticated demo application, it showcases modern web technologies, real-time data processing, and advanced analytics features including **Supabase Analytics Buckets** for large-scale historical analysis.
+
+**Key Highlights:**
+- **57 Conference Rooms** across multiple floors and buildings
+- **Real-time IoT sensor data** (occupancy, temperature, noise, air quality)
+- **Live booking integration** with calendar systems
+- **Advanced analytics** with historical trend analysis
+- **Enterprise-grade security** with role-based access control
 
 ## 🚀 Features
 
-- **Real-time Room Monitoring**: Live occupancy and environmental data
-- **Interactive Analytics**: Historical usage patterns and insights  
-- **Professional Authentication**: Secure login with company branding
-- **Live Data Streaming**: Raw sensor data feed for demonstrations
-- **Responsive Design**: Optimized for both desktop and mobile devices
-- **Enterprise-grade UI**: Built with shadcn/ui components
+### 🏢 Real-time Room Monitoring
+- Live occupancy tracking with sensor data
+- Environmental monitoring (temperature, noise level, air quality)
+- Booking status and capacity management
+- Visual indicators for room availability
+- Real-time updates via Supabase subscriptions
+
+### 📊 Advanced Analytics Dashboard
+- **Historical utilization analysis** (30+ days of data)
+- **Room performance ranking** - identify underutilized spaces
+- **Capacity problem detection** - rooms frequently over capacity
+- **Environmental trend analysis** - air quality and temperature patterns
+- **Peak usage identification** - hourly and daily patterns
+- **Analytics Buckets integration** - 17x faster query performance with Apache Iceberg
+
+### 📅 Booking Management
+- Real-time booking status (Upcoming, Active Now, Completed)
+- Live room status for active meetings
+- Booking filters and search functionality
+- Integration with calendar systems
+- Attendee count tracking
+
+### 🔐 Enterprise Authentication
+- Role-based access control (Employee, Facilities, Admin)
+- Secure Supabase authentication
+- Department-based permissions
+- Floor access restrictions
+- Professional branding and UI
+
+### 🎨 Modern UI/UX
+- Responsive design for desktop and mobile
+- Beautiful charts and data visualizations
+- Real-time visual feedback (glowing cards on updates)
+- Professional law firm theming
+- Accessibility-compliant interface
 
 ## 🛠️ Tech Stack
 
-- **Framework**: [Next.js 14](https://nextjs.org/) with App Router
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
-- **Database**: [Supabase](https://supabase.com/)
-- **Charts**: [Recharts](https://recharts.org/)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **External APIs**: Unsplash, OpenAI
+### Frontend
+- **[Next.js 14](https://nextjs.org/)** - App Router with TypeScript
+- **[Tailwind CSS](https://tailwindcss.com/)** - Modern styling framework
+- **[shadcn/ui](https://ui.shadcn.com/)** - High-quality React components
+- **[Recharts](https://recharts.org/)** - Data visualization library
+- **[Lucide React](https://lucide.dev/)** - Beautiful icon library
+
+### Backend & Database
+- **[Supabase](https://supabase.com/)** - PostgreSQL database with real-time subscriptions
+- **[Supabase Edge Functions](https://supabase.com/docs/guides/functions)** - Serverless data simulators (Deno runtime)
+- **[Supabase Auth](https://supabase.com/docs/guides/auth)** - Authentication and user management
+- **[Row Level Security](https://supabase.com/docs/guides/auth/row-level-security)** - Database-level security
+
+### Analytics & Performance
+- **Analytics Buckets** - Large-scale data analysis with Apache Iceberg
+- **Real-time subscriptions** - Live data updates via WebSocket
+- **Edge Function simulators** - Realistic IoT sensor data generation
+- **Time-series analysis** - Historical trends and patterns
 
 ## 📋 Prerequisites
 
-- Node.js 18+ 
-- npm, yarn, or pnpm
-- Supabase account
-- Unsplash API account
-- OpenAI API account
+- **Node.js 18+** 
+- **npm/yarn/pnpm**
+- **Supabase account** with project setup
+- **Environment variables** (see configuration below)
 
-## ⚙️ Environment Variables
+## ⚙️ Environment Setup
 
-Create a `.env.local` file in the root directory with the following variables:
+Create a `.env.local` file:
 
 ```bash
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key  
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
-# Unsplash API
-NEXT_PUBLIC_UNSPLASH_ACCESS_KEY=your_unsplash_access_key
-
-# OpenAI API  
-OPENAI_API_KEY=your_openai_api_key
-
-# App Configuration
-NEXTAUTH_SECRET=your_nextauth_secret
-NEXTAUTH_URL=http://localhost:3000
+# Application Settings
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-### Environment Variable Descriptions
+### Required Supabase Setup
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | ✅ |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous/public key | ✅ |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-side) | ✅ |
-| `NEXT_PUBLIC_UNSPLASH_ACCESS_KEY` | Unsplash API access key for office images | ✅ |
-| `OPENAI_API_KEY` | OpenAI API key for intelligent insights | ✅ |
-| `NEXTAUTH_SECRET` | Secret for NextAuth.js sessions | ✅ |
-| `NEXTAUTH_URL` | Base URL for authentication callbacks | ✅ |
+1. **Database Schema**: Run the master SQL file
+   ```bash
+   # Apply the complete schema
+   psql -h your-db-host -U postgres -d postgres < supabase/smart-office-dashboard.sql
+   ```
 
-## 🚀 Getting Started
+2. **Real-time Configuration**: Enable table subscriptions
+   ```sql
+   ALTER PUBLICATION supabase_realtime ADD TABLE sensor_readings;
+   ALTER PUBLICATION supabase_realtime ADD TABLE room_bookings;  
+   ALTER PUBLICATION supabase_realtime ADD TABLE facility_alerts;
+   ```
+
+3. **Edge Functions**: Deploy data simulators
+   ```bash
+   supabase functions deploy sensor-data-simulator
+   supabase functions deploy room-booking-simulator
+   ```
+
+## 🚀 Quick Start
 
 1. **Clone and Install**
    ```bash
@@ -75,166 +123,208 @@ NEXTAUTH_URL=http://localhost:3000
    npm install
    ```
 
-2. **Set up Environment Variables**
+2. **Environment Configuration**
    ```bash
    cp .env.example .env.local
-   # Edit .env.local with your actual API keys
+   # Configure your Supabase project details
    ```
 
-3. **Initialize Supabase**
+3. **Database Setup**
    ```bash
-   npx supabase init
-   npx supabase start
+   # Import the complete schema
+   supabase db reset
+   # Run the master SQL file in your Supabase dashboard
    ```
 
-4. **Run Development Server**
+4. **Start Development**
    ```bash
    npm run dev
    ```
 
-5. **Open Application**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+5. **Access Application**
+   Open [http://localhost:3000](http://localhost:3000)
 
-## 📱 Application Structure
+## 📱 Application Architecture
 
+### Page Structure
 ```
-src/
-├── app/                    # Next.js App Router
-│   ├── login/             # Authentication page
-│   ├── rooms/             # Main dashboard
-│   ├── analytics/         # Historical data analysis  
-│   └── raw-data/          # Live sensor data stream
-├── components/
-│   ├── ui/                # shadcn/ui components
-│   ├── dashboard/         # Dashboard-specific components
-│   ├── auth/              # Authentication components
-│   └── common/            # Shared components
-├── lib/
-│   ├── supabase/          # Database configuration
-│   ├── utils/             # Utility functions
-│   └── types/             # TypeScript definitions
-└── hooks/                 # Custom React hooks
+📁 src/app/
+├── 📄 page.tsx           # Landing/redirect page
+├── 🔐 login/             # Authentication
+├── 📊 dashboard/         # Executive metrics overview  
+├── 🏢 rooms/             # Live room monitoring (main page)
+├── 📅 bookings/          # Booking management
+├── 📈 analytics/         # Historical analysis & Analytics Buckets
+└── 👤 profile/           # User profile settings
 ```
 
-## 🎯 Key Pages
+### Component Architecture
+```
+📁 src/components/
+├── 🎨 ui/                # shadcn/ui base components
+├── 🧭 navigation/        # Navigation menu with role-based access
+├── 🏢 dashboard/         # Dashboard-specific widgets
+├── 📊 charts/            # Custom chart components
+└── 🔧 common/            # Shared utility components
+```
 
-### 🔐 Login (`/login`)
-- Branded authentication interface
-- Secure login with Supabase Auth
-- Professional law firm styling
-
-### 🏢 Main Dashboard (`/rooms`)
-- Real-time room occupancy display
-- Environmental monitoring (temperature, etc.)
-- Historical occupancy charts (24-hour view, 30-minute segments)
-- Live sensor integration
-
-### 📊 Analytics (`/analytics`) 
-- Historical usage patterns
-- Trend analysis and insights
-- Interactive data visualizations
-- Usage optimization recommendations
-
-### 🔴 Raw Data Stream (`/raw-data`)
-- Live sensor data feed
-- Real-time updates for demos
-- Technical monitoring interface
-- WebSocket connections for live data
-
-## 🔧 Development Scripts
-
-```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # Run ESLint
-npm run type-check   # TypeScript type checking
+### Data Layer
+```
+📁 src/lib/
+├── 🔌 supabase/          # Database client and configuration
+├── 🎯 types/             # TypeScript definitions
+└── 🛠️ utils/             # Helper functions and utilities
 ```
 
 ## 🏗️ Database Schema
 
-The application uses Supabase with the following main tables:
+### Core Tables
+- **`rooms`** - Conference room details (57 rooms across multiple floors)
+- **`sensor_readings`** - IoT sensor data (occupancy, temperature, noise, air quality)
+- **`room_bookings`** - Calendar integration and booking data
+- **`user_profiles`** - User authentication and role management
+- **`facility_alerts`** - System notifications and maintenance alerts
 
-- `rooms` - Conference room information
-- `sensors` - IoT sensor configurations  
-- `sensor_readings` - Historical sensor data
-- `occupancy_events` - Room occupancy tracking
-- `users` - User authentication and profiles
+### Real-time Features
+- **Live sensor updates** via Supabase real-time subscriptions
+- **Booking status changes** with immediate UI updates
+- **Capacity violation alerts** for facility management
+- **Environmental monitoring** with threshold notifications
 
-## 🚦 API Integrations
+### Analytics Buckets Integration
+- **Large-scale historical analysis** using Apache Iceberg
+- **Time travel queries** for data versioning
+- **Schema evolution support** for changing data requirements
+- **Open table format** for data portability
 
-### Supabase
-- Real-time database subscriptions
-- Authentication and user management
-- Row Level Security (RLS) policies
+## 📊 Key Features Deep Dive
 
-### Unsplash
-- Professional office imagery
-- Dynamic background images
-- High-quality room photographs
+### Dashboard Pages
 
-### OpenAI  
-- Intelligent data insights
-- Usage pattern analysis
-- Natural language summaries
+#### 🏢 Rooms (`/rooms`) - Main Monitoring
+- **Live room cards** showing current occupancy, temperature, and environmental data
+- **Real-time visual feedback** with yellow glow effects on data updates
+- **Capacity indicators** with color-coded status (Available/Occupied/Full)
+- **Environmental metrics** including air quality and noise levels
+- **Automatic updates** via Supabase real-time subscriptions
 
-## 🔒 Security Features
+#### 📈 Analytics (`/analytics`) - Historical Analysis
+- **Room utilization ranking** - identify most/least used spaces
+- **Usage trend analysis** with 14-day historical charts
+- **Capacity problem detection** over time
+- **Environmental correlation analysis** 
+- **Peak usage patterns** by hour of day
+- **Analytics Buckets toggle** demonstrating 17x performance improvement
+- **Detailed room performance matrix** with radar charts
 
-- Row Level Security (RLS) with Supabase
-- Environment variable protection
-- Secure API key management
-- Authentication middleware
-- Input validation and sanitization
+#### 📅 Bookings (`/bookings`) - Meeting Management
+- **Active meeting monitoring** with live room status
+- **Booking filters** (Upcoming, Active Now, Completed) 
+- **Real-time occupancy data** for active meetings only
+- **Calendar integration** showing meeting details
+- **Environmental monitoring** for active rooms
 
-## 📈 Performance Optimizations
+#### 📊 Dashboard (`/dashboard`) - Executive Overview
+- **Key metrics overview** (available rooms, utilization, violations)
+- **Environmental averages** (temperature, air quality, noise)
+- **Recent activity feed** with booking updates
+- **High-utilization alerts** for capacity management
+- **User access permissions** display
 
-- Server-side rendering with Next.js 14
-- Image optimization with next/image
-- Code splitting and lazy loading
-- Efficient real-time subscriptions
-- Optimized bundle sizes
+## 🎯 Demo Scenarios
+
+### Real-time Monitoring Demo
+1. Start sensor data simulator: `supabase functions invoke sensor-data-simulator`
+2. Navigate to `/rooms` to see live updates
+3. Watch cards glow yellow as new sensor data arrives
+4. Observe occupancy, temperature, and environmental changes
+
+### Analytics Buckets Performance Demo
+1. Navigate to `/analytics` 
+2. Click "Turn on Analytics Buckets" toggle
+3. Observe query performance improvement (3500ms → 200ms)
+4. Explore historical utilization trends and insights
+
+### Booking Management Demo  
+1. Run booking simulator: `supabase functions invoke room-booking-simulator`
+2. Navigate to `/bookings`
+3. Filter by "Active Now" to see live room status
+4. Watch real-time sensor data for active meetings
+
+## 🔒 Security & Permissions
+
+### Role-Based Access Control
+- **Employee**: Dashboard, Rooms, My Bookings, Profile
+- **Facilities**: All employee features + All Bookings, Analytics, Alerts  
+- **Admin**: All features + Raw Data, System Administration
+
+### Database Security
+- **Row Level Security (RLS)** policies for all tables
+- **Service role access** for Edge Functions and scripts
+- **Public read access** for demonstration purposes
+- **Secure API endpoints** with proper authentication
+
+## 📈 Performance Optimization
+
+- **Server-side rendering** with Next.js App Router
+- **Real-time subscriptions** instead of polling
+- **Individual state updates** to prevent unnecessary re-renders
+- **Code splitting** and lazy loading for optimal bundle sizes
+- **Analytics Buckets** for large-scale query performance
+- **Image optimization** with Next.js Image component
 
 ## 🚀 Deployment
 
-### Vercel (Recommended)
+### Vercel Deployment (Recommended)
 ```bash
+# Build and deploy
 npm run build
-# Deploy to Vercel with environment variables configured
+# Configure environment variables in Vercel dashboard
+# Connect GitHub repository for automatic deployments
 ```
 
-### Manual Deployment
+### Manual Production Deployment
 ```bash
 npm run build
 npm run start
 ```
 
-## 🧪 Testing
+### Environment Variables for Production
+Ensure all environment variables are configured in your deployment platform with production Supabase credentials.
 
-```bash
-npm run test         # Run unit tests
-npm run test:e2e     # Run end-to-end tests  
-npm run test:watch   # Watch mode testing
-```
+## 📊 Data Simulation
 
-## 📝 Contributing
+The application includes sophisticated Edge Functions for realistic data generation:
+
+### Sensor Data Simulator (`sensor-data-simulator`)
+- **Realistic occupancy patterns** based on booking data
+- **Environmental correlations** (temperature rises with occupancy)
+- **Consistent data transitions** (gradual changes, not random jumps)
+- **Booking-aware logic** (higher occupancy during scheduled meetings)
+
+### Booking Simulator (`room-booking-simulator`) 
+- **Realistic meeting patterns** following business hours
+- **Variable attendee counts** based on room capacity
+- **Professional meeting titles** and organizer emails
+- **Realistic duration patterns** (30min, 1hr, 2hr meetings)
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Follow code quality standards
+2. Create feature branches (`feature/analytics-enhancement`)
+3. Follow TypeScript best practices
 4. Add tests for new features
-5. Submit a pull request
+5. Submit pull request with detailed description
 
 ## 📄 License
 
 MIT License - see LICENSE file for details
 
-## 🤝 Support
+## 🏢 About Dewey, Cheatham & Howe
 
-For demo setup assistance or technical questions:
-- Create an issue in this repository
-- Contact the development team
-- Review the `Agents.md` file for detailed technical specifications
+This application is built for the fictional law firm "Dewey, Cheatham & Howe," serving as a sophisticated demonstration of modern office technology solutions. The firm's 57 conference rooms across multiple floors provide an ideal scenario for showcasing enterprise-scale IoT monitoring and analytics capabilities.
 
 ---
 
-**Built with ❤️ for enterprise demonstrations**
+**Built with ❤️ for enterprise IoT demonstrations**
+**Showcasing: Next.js 14, Supabase, Analytics Buckets, Real-time Data Processing**
