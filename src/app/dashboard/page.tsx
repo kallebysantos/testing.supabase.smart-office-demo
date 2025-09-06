@@ -254,6 +254,7 @@ export default function DashboardPage() {
           table: 'sensor_readings'
         },
         () => {
+          console.log('Dashboard: sensor data updated, refreshing metrics')
           fetchDashboardData()
         }
       )
@@ -265,17 +266,18 @@ export default function DashboardPage() {
           table: 'room_bookings'
         },
         () => {
+          console.log('Dashboard: booking data updated, refreshing metrics')
           fetchDashboardData()
         }
       )
       .subscribe()
 
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchDashboardData, 30000)
+    // Remove frequent refresh - only rely on real-time updates
+    // const interval = setInterval(fetchDashboardData, 30000)
 
     return () => {
       supabase.removeChannel(channel)
-      clearInterval(interval)
+      // clearInterval(interval)
     }
   }, [])
 

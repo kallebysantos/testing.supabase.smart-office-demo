@@ -185,13 +185,13 @@ export default function BookingsPage() {
       )
       .subscribe()
 
-    // Refresh every 30 seconds as backup
-    const interval = setInterval(fetchBookingsData, 30000)
+    // Remove frequent refresh - only rely on real-time updates
+    // const interval = setInterval(fetchBookingsData, 30000)
 
     return () => {
       supabase.removeChannel(bookingsChannel)
       supabase.removeChannel(sensorChannel)
-      clearInterval(interval)
+      // clearInterval(interval)
     }
   }, [])
 
@@ -282,19 +282,6 @@ export default function BookingsPage() {
                   {bookings.filter(b => getBookingStatus(b) === 'completed').length}
                 </Badge>
               </Button>
-            </div>
-            
-            {/* Status Legend */}
-            <div className="flex items-center space-x-6 text-sm text-gray-600">
-              <div className="flex items-center space-x-2">
-                <Badge variant="default">Upcoming</Badge>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Badge variant="destructive">Active Now</Badge>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Badge variant="secondary">Completed</Badge>
-              </div>
             </div>
           </div>
 
