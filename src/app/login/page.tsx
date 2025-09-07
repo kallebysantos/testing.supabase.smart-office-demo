@@ -38,7 +38,7 @@ export default function LoginPage() {
       localStorage.setItem('demo-user', JSON.stringify(demoUser))
       
       // Redirect to rooms
-      router.push('/rooms')
+      router.push('/dashboard')
     }, 1000)
   }
 
