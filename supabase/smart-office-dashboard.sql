@@ -81,7 +81,36 @@ CREATE TABLE daily_room_analytics (
   UNIQUE(room_id, date)
 );
 
--- Facility Alerts
+-- Service Tickets (Automated Facilities Management)
+CREATE TABLE service_tickets (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  room_id UUID REFERENCES rooms(id),
+  ticket_type VARCHAR(50) NOT NULL, -- 'capacity_violation', 'maintenance', 'environmental'
+  title VARCHAR(200) NOT NULL,
+  description TEXT NOT NULL,
+  severity VARCHAR(20) CHECK (severity IN ('low', 'medium', 'high', 'critical')) DEFAULT 'medium',
+  status VARCHAR(20) CHECK (status IN ('queued', 'processing', 'assigned', 'resolved')) DEFAULT 'queued',
+  priority INTEGER DEFAULT 3, -- 1=highest, 5=lowest
+  
+  -- Violation details
+  trigger_reading_id UUID REFERENCES sensor_readings(id),
+  violation_data JSONB, -- Store specific violation details
+  
+  -- Assignment and resolution
+  assigned_to VARCHAR(100),
+  assigned_at TIMESTAMP WITH TIME ZONE,
+  resolved_at TIMESTAMP WITH TIME ZONE,
+  resolution_notes TEXT,
+  
+  -- ServiceNow integration fields (for demo)
+  external_ticket_id VARCHAR(50),
+  external_system VARCHAR(20) DEFAULT 'servicenow',
+  
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Legacy facility alerts (keep for backwards compatibility)
 CREATE TABLE facility_alerts (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   room_id UUID REFERENCES rooms(id),
@@ -111,6 +140,9 @@ CREATE INDEX idx_room_bookings_room_time ON room_bookings(room_id, start_time);
 CREATE INDEX idx_daily_analytics_room_date ON daily_room_analytics(room_id, date);
 CREATE INDEX idx_facility_alerts_room_resolved ON facility_alerts(room_id, resolved);
 CREATE INDEX idx_user_profiles_role ON user_profiles(role);
+CREATE INDEX idx_service_tickets_status_created ON service_tickets(status, created_at DESC);
+CREATE INDEX idx_service_tickets_room_status ON service_tickets(room_id, status);
+CREATE INDEX idx_service_tickets_priority_created ON service_tickets(priority, created_at);
 
 -- ============================================================================
 -- HELPER FUNCTIONS
@@ -184,6 +216,7 @@ ALTER TABLE room_bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_room_analytics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE facility_alerts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE service_tickets ENABLE ROW LEVEL SECURITY;
 
 -- Read-only access for public, write access for service role only
 -- This ensures security while allowing demo functionality
@@ -195,6 +228,7 @@ CREATE POLICY "public_read_user_profiles" ON user_profiles FOR SELECT USING (tru
 CREATE POLICY "public_read_bookings" ON room_bookings FOR SELECT USING (true);
 CREATE POLICY "public_read_analytics" ON daily_room_analytics FOR SELECT USING (true);
 CREATE POLICY "public_read_alerts" ON facility_alerts FOR SELECT USING (true);
+CREATE POLICY "public_read_service_tickets" ON service_tickets FOR SELECT USING (true);
 
 -- Service role write access for scripts and Edge Functions
 CREATE POLICY "service_insert_rooms" ON rooms FOR INSERT 
@@ -224,6 +258,12 @@ WITH CHECK (auth.role() = 'service_role');
 CREATE POLICY "service_update_alerts" ON facility_alerts FOR UPDATE 
 USING (auth.role() = 'service_role');
 
+CREATE POLICY "service_insert_service_tickets" ON service_tickets FOR INSERT 
+WITH CHECK (auth.role() = 'service_role');
+
+CREATE POLICY "service_update_service_tickets" ON service_tickets FOR UPDATE 
+USING (auth.role() = 'service_role');
+
 -- ============================================================================
 -- TABLE COMMENTS FOR DOCUMENTATION
 -- ============================================================================
@@ -243,7 +283,7 @@ COMMENT ON TABLE room_embeddings IS 'Vector embeddings for semantic search';
 -- Enable real-time updates for critical tables
 ALTER PUBLICATION supabase_realtime ADD TABLE sensor_readings;
 ALTER PUBLICATION supabase_realtime ADD TABLE room_bookings;
-ALTER PUBLICATION supabase_realtime ADD TABLE facility_alerts;
+ALTER PUBLICATION supabase_realtime ADD TABLE service_tickets;
 
 -- ============================================================================
 -- END OF SCHEMA

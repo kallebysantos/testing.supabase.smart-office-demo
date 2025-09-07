@@ -10,6 +10,7 @@
     "generate:rooms": "tsx scripts/generate-conference-rooms.ts",
     "generate:users": "tsx scripts/generate-users.ts",
     "generate:images": "tsx scripts/generate-room-images.ts",
+    "generate:tickets": "tsx scripts/generate-service-tickets.ts",
     "functions:deploy": "supabase functions deploy sensor-data-simulator",
     "functions:deploy-booking": "supabase functions deploy room-booking-simulator",
     "functions:deploy-all": "supabase functions deploy sensor-data-simulator && supabase functions deploy room-booking-simulator",

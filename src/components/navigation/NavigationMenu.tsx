@@ -24,7 +24,6 @@ import {
   BarChart3,
   Calendar,
   AlertTriangle,
-  Database,
   User,
   LogOut,
   Menu,
@@ -78,6 +77,13 @@ const navigationItems: NavigationItem[] = [
     icon: BarChart3,
     roles: ['facilities', 'admin'],
     description: 'Usage patterns and insights'
+  },
+  {
+    title: 'Alerts',
+    href: '/alerts',
+    icon: AlertTriangle,
+    roles: ['facilities', 'admin'],
+    description: 'Capacity violations and service tickets'
   }
 ]
 

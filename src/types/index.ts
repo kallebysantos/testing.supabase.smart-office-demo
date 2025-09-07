@@ -53,10 +53,34 @@ export interface UserProfile {
   created_at: string
 }
 
+export interface ServiceTicket {
+  id: string
+  room_id: RoomId
+  ticket_type: TicketType
+  title: string
+  description: string
+  severity: TicketSeverity
+  status: TicketStatus
+  priority: number
+  trigger_reading_id?: string
+  violation_data?: Record<string, any>
+  assigned_to?: string
+  assigned_at?: string
+  resolved_at?: string
+  resolution_notes?: string
+  external_ticket_id?: string
+  external_system: string
+  created_at: string
+  updated_at: string
+}
+
 // Enums and union types
 export type UserRole = 'employee' | 'facilities' | 'admin'
 export type BookingStatus = 'upcoming' | 'active' | 'completed'
 export type RoomStatus = 'available' | 'occupied' | 'full' | 'unknown'
+export type TicketStatus = 'queued' | 'processing' | 'assigned' | 'resolved'
+export type TicketSeverity = 'low' | 'medium' | 'high' | 'critical'
+export type TicketType = 'capacity_violation' | 'maintenance' | 'environmental'
 
 // Derived types for UI components
 export interface RoomWithSensorData extends Room {

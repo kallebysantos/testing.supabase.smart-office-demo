@@ -1,115 +1,146 @@
-'use client'
+"use client";
 
-import { useAuth } from '@/contexts/AuthContext'
-import NavigationMenu from '@/components/navigation/NavigationMenu'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Building2, Users, Calendar, Activity, Thermometer, AlertTriangle, TrendingUp, Volume2, Wind } from 'lucide-react'
-import { Loader2 } from 'lucide-react'
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase/client'
+import { useAuth } from "@/contexts/AuthContext";
+import NavigationMenu from "@/components/navigation/NavigationMenu";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import {
+  Building2,
+  Users,
+  Calendar,
+  Activity,
+  Thermometer,
+  AlertTriangle,
+  TrendingUp,
+  Volume2,
+  Wind,
+  RefreshCw,
+} from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/lib/supabase/client";
 
 interface DashboardMetrics {
-  availableRooms: number
-  roomsAboveCapacity: number
-  averageTemperature: number
-  averageNoiseLevel: number
-  averageAirQuality: number
-  averageUtilization: number
-  totalRooms: number
+  availableRooms: number;
+  roomsAboveCapacity: number;
+  averageTemperature: number;
+  averageNoiseLevel: number;
+  averageAirQuality: number;
+  averageUtilization: number;
+  totalRooms: number;
 }
 
 interface RoomActivity {
-  room_name: string
-  action: string
-  time_ago: string
-  created_at: string
+  room_name: string;
+  action: string;
+  time_ago: string;
+  created_at: string;
 }
 
 interface HighUtilizationRoom {
-  name: string
-  occupancy: number
-  capacity: number
-  utilization_percentage: number
-  temperature: number | null
+  name: string;
+  occupancy: number;
+  capacity: number;
+  utilization_percentage: number;
+  temperature: number | null;
 }
 
 export default function DashboardPage() {
-  const { user, userProfile, loading } = useAuth()
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
-  const [recentActivity, setRecentActivity] = useState<RoomActivity[]>([])
-  const [highUtilizationRooms, setHighUtilizationRooms] = useState<HighUtilizationRoom[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const { user, userProfile, loading } = useAuth();
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [recentActivity, setRecentActivity] = useState<RoomActivity[]>([]);
+  const [highUtilizationRooms, setHighUtilizationRooms] = useState<
+    HighUtilizationRoom[]
+  >([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [realtimeStatus, setRealtimeStatus] = useState<
+    "connecting" | "connected" | "disconnected"
+  >("connecting");
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   // Fetch real-time metrics from Supabase
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async (showLoading = false) => {
     try {
-      setIsLoading(true)
+      if (showLoading) {
+        setIsLoading(true);
+      }
 
       // Get rooms first
       const { data: roomsData, error: roomsError } = await supabase
-        .from('rooms')
-        .select('id, name, capacity')
+        .from("rooms")
+        .select("id, name, capacity");
 
-      if (roomsError) throw roomsError
+      if (roomsError) throw roomsError;
 
-      // Get latest sensor readings separately
-      const { data: sensorData, error: sensorError } = await supabase
-        .from('sensor_readings')
-        .select('room_id, occupancy, temperature, noise_level, air_quality, timestamp')
-        .order('timestamp', { ascending: false })
+      // Get latest sensor readings per room using a more efficient query
+      const { data: sensorData, error: sensorError } = await supabase.rpc(
+        "get_latest_sensor_readings"
+      );
 
-      // For demo purposes, create mock metrics if no data
-      const totalRooms = roomsData?.length || 0
-      let availableRooms = Math.floor(totalRooms * 0.4) // 40% available
-      let roomsAboveCapacity = Math.floor(totalRooms * 0.1) // 10% over capacity  
-      let averageTemperature = 72
-      let averageNoiseLevel = 45
-      let averageAirQuality = 82
-      let averageUtilization = 65
+      if (sensorError) {
+        console.warn("Error fetching sensor data:", sensorError);
+      }
 
-      const highUtilRooms: HighUtilizationRoom[] = []
+      // Calculate real metrics from database data
+      const totalRooms = roomsData?.length || 0;
+      let availableRooms = 0;
+      let roomsAboveCapacity = 0;
+      let averageTemperature = 0;
+      let averageNoiseLevel = 0;
+      let averageAirQuality = 0;
+      let averageUtilization = 0;
 
-      // If we have sensor data, calculate real metrics
+      const highUtilRooms: HighUtilizationRoom[] = [];
+
+      // Calculate metrics from real sensor data
       if (sensorData && roomsData) {
-        availableRooms = 0
-        roomsAboveCapacity = 0
-        let totalTemperature = 0
-        let totalNoiseLevel = 0
-        let totalAirQuality = 0
-        let totalUtilization = 0
-        let temperatureReadings = 0
-        let noiseReadings = 0
-        let airQualityReadings = 0
+        availableRooms = 0;
+        roomsAboveCapacity = 0;
+        let totalTemperature = 0;
+        let totalNoiseLevel = 0;
+        let totalAirQuality = 0;
+        let totalUtilization = 0;
+        let temperatureReadings = 0;
+        let noiseReadings = 0;
+        let airQualityReadings = 0;
 
-        // Get latest reading per room
-        const latestReadings = new Map()
-        sensorData.forEach(reading => {
-          if (!latestReadings.has(reading.room_id)) {
-            latestReadings.set(reading.room_id, reading)
-          }
-        })
+        // Create map of latest readings (RPC already returns latest per room)
+        const latestReadings = new Map<string, any>();
+        if (sensorData && Array.isArray(sensorData)) {
+          sensorData.forEach((reading: any) => {
+            latestReadings.set(reading.room_id, reading);
+          });
+        }
+
+        // Debug info (remove in production)
+        // console.log('Dashboard Debug:', {
+        //   totalRooms: roomsData.length,
+        //   totalSensorReadings: Array.isArray(sensorData) ? sensorData.length : 0,
+        //   uniqueRoomReadings: latestReadings.size
+        // });
 
         roomsData.forEach((room: any) => {
-          const latestReading = latestReadings.get(room.id)
-          const occupancy = latestReading?.occupancy || 0
-          const temperature = latestReading?.temperature || 72
-          const noiseLevel = latestReading?.noise_level || 45
-          const airQuality = latestReading?.air_quality || 82
-          const utilization = room.capacity > 0 ? (occupancy / room.capacity) * 100 : 0
+          const latestReading = latestReadings.get(room.id);
+          const occupancy = latestReading?.occupancy || 0;
+          const temperature = latestReading?.temperature || 72;
+          const noiseLevel = latestReading?.noise_level || 45;
+          const airQuality = latestReading?.air_quality || 82;
+          const utilization =
+            room.capacity > 0 ? (occupancy / room.capacity) * 100 : 0;
 
           // Count metrics
-          if (occupancy === 0) availableRooms++
-          if (occupancy > room.capacity) roomsAboveCapacity++
-          
-          totalTemperature += temperature
-          temperatureReadings++
-          totalNoiseLevel += noiseLevel
-          noiseReadings++
-          totalAirQuality += airQuality
-          airQualityReadings++
-          totalUtilization += utilization
+          if (occupancy === 0) availableRooms++;
+          if (occupancy > room.capacity) roomsAboveCapacity++;
+
+          totalTemperature += temperature;
+          temperatureReadings++;
+          totalNoiseLevel += noiseLevel;
+          noiseReadings++;
+          totalAirQuality += airQuality;
+          airQualityReadings++;
+          totalUtilization += utilization;
 
           // High utilization rooms (90%+)
           if (utilization >= 90) {
@@ -118,24 +149,33 @@ export default function DashboardPage() {
               occupancy,
               capacity: room.capacity,
               utilization_percentage: Math.round(utilization),
-              temperature
-            })
+              temperature,
+            });
           }
-        })
+        });
 
         // Calculate averages
         if (temperatureReadings > 0) {
-          averageTemperature = Math.round(totalTemperature / temperatureReadings)
+          averageTemperature = Math.round(
+            totalTemperature / temperatureReadings
+          );
         }
         if (noiseReadings > 0) {
-          averageNoiseLevel = Math.round(totalNoiseLevel / noiseReadings)
+          averageNoiseLevel = Math.round(totalNoiseLevel / noiseReadings);
         }
         if (airQualityReadings > 0) {
-          averageAirQuality = Math.round(totalAirQuality / airQualityReadings)
+          averageAirQuality = Math.round(totalAirQuality / airQualityReadings);
         }
         if (roomsData.length > 0) {
-          averageUtilization = Math.round(totalUtilization / roomsData.length)
+          averageUtilization = Math.round(totalUtilization / roomsData.length);
         }
+      } else {
+        // If no sensor data, all rooms are available
+        availableRooms = totalRooms;
+        averageTemperature = 72;
+        averageNoiseLevel = 45;
+        averageAirQuality = 82;
+        averageUtilization = 0;
       }
 
       const dashboardMetrics: DashboardMetrics = {
@@ -145,158 +185,159 @@ export default function DashboardPage() {
         averageNoiseLevel,
         averageAirQuality,
         averageUtilization,
-        totalRooms
-      }
+        totalRooms,
+      };
 
-      setMetrics(dashboardMetrics)
-      setHighUtilizationRooms(highUtilRooms.slice(0, 5))
+      setMetrics(dashboardMetrics);
+      setHighUtilizationRooms(highUtilRooms.slice(0, 5));
+      setLastUpdated(new Date());
 
       // Get recent bookings as activity (simplified)
       const { data: recentBookings, error: bookingsError } = await supabase
-        .from('room_bookings')
-        .select('title, created_at, room_id')
-        .order('created_at', { ascending: false })
-        .limit(4)
+        .from("room_bookings")
+        .select("title, created_at, room_id")
+        .order("created_at", { ascending: false })
+        .limit(4);
 
       if (!bookingsError && recentBookings && roomsData) {
-        const roomsMap = new Map(roomsData.map((room: any) => [room.id, room.name]))
+        const roomsMap = new Map(
+          roomsData.map((room: any) => [room.id, room.name])
+        );
         const activity: RoomActivity[] = recentBookings.map((booking: any) => ({
-          room_name: roomsMap.get(booking.room_id) || 'Unknown Room',
+          room_name: roomsMap.get(booking.room_id) || "Unknown Room",
           action: `Meeting: "${booking.title}"`,
           time_ago: getTimeAgo(booking.created_at),
-          created_at: booking.created_at
-        }))
-        setRecentActivity(activity)
+          created_at: booking.created_at,
+        }));
+        setRecentActivity(activity);
       } else {
-        // Mock activity if no bookings
-        setRecentActivity([
-          {
-            room_name: 'Beagle Conference Room',
-            action: 'Meeting: "Client Strategy Session"',
-            time_ago: '15 minutes ago',
-            created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString()
-          },
-          {
-            room_name: 'Golden Retriever Boardroom',
-            action: 'Meeting: "Quarterly Review"',
-            time_ago: '1 hour ago',
-            created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString()
-          }
-        ])
+        // No recent bookings - show empty state
+        setRecentActivity([]);
       }
 
+      // Update timestamp for silent updates too
+      if (!showLoading) {
+        setLastUpdated(new Date());
+      }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error)
-      console.error('Error details:', JSON.stringify(error, null, 2))
-      
-      // Set fallback mock data if there's an error
+      console.error("Error fetching dashboard data:", error);
+      console.error("Error details:", JSON.stringify(error, null, 2));
+
+      // Set fallback data if there's an error - use real room count if available
       setMetrics({
-        availableRooms: 8,
-        roomsAboveCapacity: 2,
+        availableRooms: 0,
+        roomsAboveCapacity: 0,
         averageTemperature: 72,
-        averageUtilization: 67,
-        totalRooms: 12
-      })
-      
-      setRecentActivity([
-        {
-          room_name: 'Beagle Conference Room',
-          action: 'Meeting: "Client Strategy Session"',
-          time_ago: '15 minutes ago',
-          created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString()
-        },
-        {
-          room_name: 'Golden Retriever Boardroom',
-          action: 'Meeting: "Quarterly Review"',
-          time_ago: '1 hour ago',
-          created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString()
-        }
-      ])
-      
-      setHighUtilizationRooms([
-        {
-          name: 'German Shepherd Executive Room',
-          occupancy: 19,
-          capacity: 20,
-          utilization_percentage: 95,
-          temperature: 74
-        }
-      ])
+        averageNoiseLevel: 45,
+        averageAirQuality: 82,
+        averageUtilization: 0,
+        totalRooms: 0,
+      });
+
+      setRecentActivity([]);
+      setHighUtilizationRooms([]);
     } finally {
-      setIsLoading(false)
+      if (showLoading) {
+        setIsLoading(false);
+      }
     }
-  }
+  }, []);
 
   // Helper function to calculate time ago
   const getTimeAgo = (timestamp: string): string => {
-    const now = new Date()
-    const past = new Date(timestamp)
-    const diffInMinutes = Math.floor((now.getTime() - past.getTime()) / (1000 * 60))
-    
-    if (diffInMinutes < 1) return 'Just now'
-    if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hours ago`
-    return `${Math.floor(diffInMinutes / 1440)} days ago`
-  }
+    const now = new Date();
+    const past = new Date(timestamp);
+    const diffInMinutes = Math.floor(
+      (now.getTime() - past.getTime()) / (1000 * 60)
+    );
+
+    if (diffInMinutes < 1) return "Just now";
+    if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+    if (diffInMinutes < 1440)
+      return `${Math.floor(diffInMinutes / 60)} hours ago`;
+    return `${Math.floor(diffInMinutes / 1440)} days ago`;
+  };
 
   // Real-time updates
   useEffect(() => {
-    fetchDashboardData()
+    // Initial load with loading indicator
+    fetchDashboardData(true);
 
     // Set up real-time subscription for sensor readings
     const channel = supabase
-      .channel('dashboard-updates')
+      .channel("dashboard-updates")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'sensor_readings'
+          event: "*",
+          schema: "public",
+          table: "sensor_readings",
         },
-        () => {
-          console.log('Dashboard: sensor data updated, refreshing metrics')
-          fetchDashboardData()
+        (payload) => {
+          console.log("Dashboard: sensor data updated", payload);
+          // Silent update without loading indicator
+          fetchDashboardData(false);
         }
       )
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'room_bookings'
+          event: "*",
+          schema: "public",
+          table: "room_bookings",
         },
-        () => {
-          console.log('Dashboard: booking data updated, refreshing metrics')
-          fetchDashboardData()
+        (payload) => {
+          console.log("Dashboard: booking data updated", payload);
+          // Silent update without loading indicator
+          fetchDashboardData(false);
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log("Dashboard real-time subscription status:", status);
+        if (status === "SUBSCRIBED") {
+          console.log("✅ Dashboard real-time subscription active");
+          setRealtimeStatus("connected");
+        } else if (status === "CHANNEL_ERROR") {
+          console.error("❌ Dashboard real-time subscription failed");
+          setRealtimeStatus("disconnected");
+        } else if (status === "TIMED_OUT") {
+          console.warn("⚠️ Dashboard real-time subscription timed out");
+          setRealtimeStatus("disconnected");
+        } else if (status === "CLOSED") {
+          console.log("📴 Dashboard real-time subscription closed");
+          setRealtimeStatus("disconnected");
+        }
+      });
 
-    // Remove frequent refresh - only rely on real-time updates
-    // const interval = setInterval(fetchDashboardData, 30000)
+    // Fallback: refresh every 30 seconds if real-time fails
+    const interval = setInterval(() => {
+      console.log("Dashboard: fallback refresh triggered");
+      // Silent update without loading indicator
+      fetchDashboardData(false);
+    }, 30000);
 
     return () => {
-      supabase.removeChannel(channel)
-      // clearInterval(interval)
-    }
-  }, [])
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, [fetchDashboardData]);
 
   if (loading || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
-    )
+    );
   }
 
   if (!user || !userProfile || !metrics) {
-    return null
+    return null;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <NavigationMenu />
-      
+
       <main className="md:ml-64">
         <div className="px-4 py-8 md:px-8">
           {/* Header */}
@@ -310,9 +351,42 @@ export default function DashboardPage() {
                   Real-time conference room utilization across all buildings
                 </p>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm text-gray-600">Live Data</span>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <div
+                    className={`h-2 w-2 rounded-full ${
+                      realtimeStatus === "connected"
+                        ? "bg-green-500 animate-pulse"
+                        : realtimeStatus === "connecting"
+                        ? "bg-yellow-500 animate-pulse"
+                        : "bg-red-500"
+                    }`}
+                  ></div>
+                  <span className="text-sm text-gray-600">
+                    {realtimeStatus === "connected"
+                      ? "Live Data"
+                      : realtimeStatus === "connecting"
+                      ? "Connecting..."
+                      : "Offline (30s refresh)"}
+                    {lastUpdated && (
+                      <span className="ml-2 text-xs text-gray-400">
+                        • Updated {getTimeAgo(lastUpdated.toISOString())}
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fetchDashboardData(true)}
+                  disabled={isLoading}
+                  className="flex items-center space-x-1"
+                >
+                  <RefreshCw
+                    className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`}
+                  />
+                  <span>Refresh</span>
+                </Button>
               </div>
             </div>
             <div className="mt-4">
@@ -320,7 +394,8 @@ export default function DashboardPage() {
                 {userProfile.department}
               </Badge>
               <Badge variant="secondary">
-                {userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1)}
+                {userProfile.role.charAt(0).toUpperCase() +
+                  userProfile.role.slice(1)}
               </Badge>
             </div>
           </div>
@@ -335,8 +410,12 @@ export default function DashboardPage() {
                 <Building2 className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{metrics.availableRooms}</div>
-                <p className="text-xs text-gray-500 mt-1">of {metrics.totalRooms} conference rooms</p>
+                <div className="text-2xl font-bold text-gray-900">
+                  {metrics.availableRooms}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  of {metrics.totalRooms} conference rooms
+                </p>
               </CardContent>
             </Card>
 
@@ -348,7 +427,9 @@ export default function DashboardPage() {
                 <AlertTriangle className="h-4 w-4 text-red-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-red-600">{metrics.roomsAboveCapacity}</div>
+                <div className="text-2xl font-bold text-red-600">
+                  {metrics.roomsAboveCapacity}
+                </div>
                 <p className="text-xs text-gray-500 mt-1">rooms over limit</p>
               </CardContent>
             </Card>
@@ -361,8 +442,12 @@ export default function DashboardPage() {
                 <TrendingUp className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-blue-600">{metrics.averageUtilization}%</div>
-                <p className="text-xs text-gray-500 mt-1">average occupancy rate</p>
+                <div className="text-2xl font-bold text-blue-600">
+                  {metrics.averageUtilization}%
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  average occupancy rate
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -377,7 +462,9 @@ export default function DashboardPage() {
                 <Thermometer className="h-4 w-4 text-orange-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{metrics.averageTemperature}°F</div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {metrics.averageTemperature}°F
+                </div>
                 <p className="text-xs text-gray-500 mt-1">across all rooms</p>
               </CardContent>
             </Card>
@@ -390,7 +477,9 @@ export default function DashboardPage() {
                 <Wind className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{metrics.averageAirQuality}/100</div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {metrics.averageAirQuality}/100
+                </div>
                 <p className="text-xs text-gray-500 mt-1">air quality index</p>
               </CardContent>
             </Card>
@@ -403,7 +492,9 @@ export default function DashboardPage() {
                 <Volume2 className="h-4 w-4 text-purple-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{metrics.averageNoiseLevel} dB</div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {metrics.averageNoiseLevel} dB
+                </div>
                 <p className="text-xs text-gray-500 mt-1">across all rooms</p>
               </CardContent>
             </Card>
@@ -422,15 +513,24 @@ export default function DashboardPage() {
                 <div className="space-y-4">
                   {recentActivity.length > 0 ? (
                     recentActivity.map((activity, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
                         <div className="flex items-center space-x-3">
                           <Calendar className="h-4 w-4 text-blue-500" />
                           <div>
-                            <p className="text-sm font-medium text-gray-900">{activity.room_name}</p>
-                            <p className="text-xs text-gray-500">{activity.action}</p>
+                            <p className="text-sm font-medium text-gray-900">
+                              {activity.room_name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {activity.action}
+                            </p>
                           </div>
                         </div>
-                        <span className="text-xs text-gray-400">{activity.time_ago}</span>
+                        <span className="text-xs text-gray-400">
+                          {activity.time_ago}
+                        </span>
                       </div>
                     ))
                   ) : (
@@ -455,22 +555,31 @@ export default function DashboardPage() {
                 <div className="space-y-4">
                   {highUtilizationRooms.length > 0 ? (
                     highUtilizationRooms.map((room, index) => (
-                      <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <div
+                        key={index}
+                        className="p-3 bg-red-50 border border-red-200 rounded-lg"
+                      >
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center space-x-2">
                             <Building2 className="h-4 w-4 text-red-600" />
-                            <p className="text-sm font-medium text-gray-900">{room.name}</p>
+                            <p className="text-sm font-medium text-gray-900">
+                              {room.name}
+                            </p>
                           </div>
                           <Badge variant="destructive" className="text-xs">
                             {room.utilization_percentage}%
                           </Badge>
                         </div>
                         <div className="flex items-center justify-between text-xs text-gray-600">
-                          <span>{room.occupancy}/{room.capacity} people</span>
-                          {room.temperature && <span>{room.temperature}°F</span>}
+                          <span>
+                            {room.occupancy}/{room.capacity} people
+                          </span>
+                          {room.temperature && (
+                            <span>{room.temperature}°F</span>
+                          )}
                         </div>
-                        <Progress 
-                          value={Math.min(room.utilization_percentage, 100)} 
+                        <Progress
+                          value={Math.min(room.utilization_percentage, 100)}
                           className="mt-2 h-2"
                         />
                       </div>
@@ -478,7 +587,9 @@ export default function DashboardPage() {
                   ) : (
                     <div className="text-center py-6 text-gray-500">
                       <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">All rooms operating within capacity</p>
+                      <p className="text-sm">
+                        All rooms operating within capacity
+                      </p>
                     </div>
                   )}
                 </div>
@@ -494,30 +605,36 @@ export default function DashboardPage() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-3">Floor Access</h4>
+                  <h4 className="font-medium text-gray-900 mb-3">
+                    Floor Access
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {userProfile.floor_access?.map((floor) => (
                       <Badge key={floor} variant="outline" className="text-xs">
                         Floor {floor}
                       </Badge>
                     )) || (
-                      <span className="text-sm text-gray-500">No floor access configured</span>
+                      <span className="text-sm text-gray-500">
+                        No floor access configured
+                      </span>
                     )}
                   </div>
                 </div>
-                
+
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-3">Available Features</h4>
+                  <h4 className="font-medium text-gray-900 mb-3">
+                    Available Features
+                  </h4>
                   <div className="space-y-1 text-sm text-gray-600">
                     <p>✓ Real-time occupancy monitoring</p>
                     <p>✓ Capacity violation alerts</p>
-                    {userProfile.role !== 'employee' && (
+                    {userProfile.role !== "employee" && (
                       <>
                         <p>✓ Utilization analytics</p>
                         <p>✓ Executive dashboards</p>
                       </>
                     )}
-                    {userProfile.role === 'admin' && (
+                    {userProfile.role === "admin" && (
                       <p>✓ System administration</p>
                     )}
                   </div>
@@ -528,5 +645,5 @@ export default function DashboardPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

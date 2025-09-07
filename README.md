@@ -37,6 +37,14 @@ This smart office dashboard provides real-time insights into conference room uti
 - Integration with calendar systems
 - Attendee count tracking
 
+### 🚨 Real-time Alerts & Facilities Management
+- **Automated capacity violation detection** - AI-powered monitoring system
+- **ServiceNow integration** - Seamless ticket creation and management
+- **Real-time service ticket queue** - Live monitoring of facility issues
+- **Automated workflow processing** - From detection to resolution
+- **Facilities team dashboard** - Priority-based ticket assignment
+- **SLA tracking and monitoring** - Performance metrics and compliance
+
 ### 🔐 Enterprise Authentication
 - Role-based access control (Employee, Facilities, Admin)
 - Secure Supabase authentication
@@ -106,12 +114,14 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
    ALTER PUBLICATION supabase_realtime ADD TABLE sensor_readings;
    ALTER PUBLICATION supabase_realtime ADD TABLE room_bookings;  
    ALTER PUBLICATION supabase_realtime ADD TABLE facility_alerts;
+   ALTER PUBLICATION supabase_realtime ADD TABLE service_tickets;
    ```
 
-3. **Edge Functions**: Deploy data simulators
+3. **Edge Functions**: Deploy data simulators and facilities management
    ```bash
    supabase functions deploy sensor-data-simulator
    supabase functions deploy room-booking-simulator
+   supabase functions deploy capacity-violation-detector
    ```
 
 ## 🚀 Quick Start
@@ -155,6 +165,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ├── 🏢 rooms/             # Live room monitoring (main page)
 ├── 📅 bookings/          # Booking management
 ├── 📈 analytics/         # Historical analysis & Analytics Buckets
+├── 🚨 alerts/            # Real-time facilities management system
 └── 👤 profile/           # User profile settings
 ```
 
@@ -183,12 +194,15 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - **`sensor_readings`** - IoT sensor data (occupancy, temperature, noise, air quality)
 - **`room_bookings`** - Calendar integration and booking data
 - **`user_profiles`** - User authentication and role management
-- **`facility_alerts`** - System notifications and maintenance alerts
+- **`service_tickets`** - Automated facilities management tickets with ServiceNow integration
+- **`facility_alerts`** - Legacy system notifications and maintenance alerts
 
 ### Real-time Features
 - **Live sensor updates** via Supabase real-time subscriptions
 - **Booking status changes** with immediate UI updates
-- **Capacity violation alerts** for facility management
+- **Automated capacity violation detection** with service ticket creation
+- **Real-time ticket queue processing** and assignment workflows
+- **ServiceNow integration** for enterprise facilities management
 - **Environmental monitoring** with threshold notifications
 
 ### Analytics Buckets Integration
@@ -231,6 +245,16 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - **High-utilization alerts** for capacity management
 - **User access permissions** display
 
+#### 🚨 Alerts (`/alerts`) - Facilities Management System
+- **Real-time service ticket queue** monitoring (Queued, Processing, Assigned, Resolved)
+- **Automated capacity violation detection** with instant ticket creation
+- **ServiceNow integration** with external ticket ID tracking and branding
+- **Priority-based ticket assignment** with SLA monitoring
+- **Resolution tracking** with detailed notes and performance metrics
+- **Manual ticket resolution** tools for facilities team
+- **Live queue processing** with automated workflow management
+- **High-priority violation** dashboard with critical alerts
+
 ## 🎯 Demo Scenarios
 
 ### Real-time Monitoring Demo
@@ -251,12 +275,20 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 3. Filter by "Active Now" to see live room status
 4. Watch real-time sensor data for active meetings
 
+### Automated Facilities Management Demo
+1. Navigate to `/alerts` (Facilities/Admin role required)
+2. Click "Trigger Detection" to simulate capacity violations
+3. Watch automated service ticket creation with ServiceNow integration
+4. Observe real-time queue processing and ticket assignment
+5. Use manual resolution tools to complete tickets
+6. Monitor SLA tracking and performance metrics
+
 ## 🔒 Security & Permissions
 
 ### Role-Based Access Control
 - **Employee**: Dashboard, Rooms, My Bookings, Profile
-- **Facilities**: All employee features + All Bookings, Analytics, Alerts  
-- **Admin**: All features + Raw Data, System Administration
+- **Facilities**: All employee features + All Bookings, Analytics, **Alerts System**
+- **Admin**: All features + Raw Data, System Administration, **Full Alerts Management**
 
 ### Database Security
 - **Row Level Security (RLS)** policies for all tables
