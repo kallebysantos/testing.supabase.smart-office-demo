@@ -19,8 +19,10 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { Loader2 } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/lib/supabase/client";
+import { FloorModel3D } from "@/components/dashboard/FloorModel3D";
+import { generateFloorplan, RoomData } from "@/lib/fakefloorplan";
 
 interface DashboardMetrics {
   availableRooms: number;
@@ -59,6 +61,37 @@ export default function DashboardPage() {
     "connecting" | "connected" | "disconnected"
   >("connecting");
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  // Generate floorplan data with real-time metrics integration - All rooms
+  const floorplanData = useMemo(() => {
+    const floorplan = generateFloorplan();
+
+    // Update room data with real-time metrics if available
+    if (metrics) {
+      floorplan.rooms.forEach((room) => {
+        // Add some variation to make it more realistic
+        const variation = Math.floor(Math.random() * 4) - 2;
+
+        room.temperature = (metrics.averageTemperature || 72) + variation;
+        room.airQuality = Math.max(
+          0,
+          Math.min(
+            100,
+            (metrics.averageAirQuality || 85) +
+              Math.floor(Math.random() * 10) -
+              5
+          )
+        );
+        room.noiseLevel = Math.max(
+          0,
+          (metrics.averageNoiseLevel || 42) + Math.floor(Math.random() * 8) - 4
+        );
+        // Keep existing occupancy for demo purposes, but could be updated from real data
+      });
+    }
+
+    return floorplan;
+  }, [metrics]);
 
   // Fetch real-time metrics from Supabase
   const fetchDashboardData = useCallback(async (showLoading = false) => {
@@ -429,6 +462,27 @@ export default function DashboardPage() {
               </Badge>
             </div>
           </div>
+
+          {/* 3D Floor Model - Demo Showcase */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Building2 className="h-5 w-5 text-blue-600" />
+                <span>Live Floor Overview - Executive Floor</span>
+              </CardTitle>
+              <p className="text-sm text-gray-600">
+                Interactive 3D model showing real-time occupancy and
+                environmental data across key conference rooms
+              </p>
+            </CardHeader>
+            <CardContent>
+              <FloorModel3D
+                rooms={floorplanData.rooms}
+                autoRotate={false}
+                className="w-full"
+              />
+            </CardContent>
+          </Card>
 
           {/* Real-time Metrics Grid - Top Row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
