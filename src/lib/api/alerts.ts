@@ -139,7 +139,7 @@ export class AlertsApi extends ApiClient {
   /**
    * Trigger capacity violation detection (calls Edge Function)
    */
-  async triggerViolationDetection(): Promise<ApiResponse<any>> {
+  async triggerViolationDetection(): Promise<ApiResponse<unknown>> {
     try {
       const response = await fetch("/api/detect-violations", {
         method: "POST",

@@ -107,11 +107,30 @@ export default function DashboardPage() {
         let airQualityReadings = 0;
 
         // Create map of latest readings (RPC already returns latest per room)
-        const latestReadings = new Map<string, any>();
+        const latestReadings = new Map<
+          string,
+          {
+            room_id: string;
+            occupancy: number;
+            temperature: number;
+            noise_level: number;
+            air_quality: number;
+            reading_timestamp: string;
+          }
+        >();
         if (sensorData && Array.isArray(sensorData)) {
-          sensorData.forEach((reading: any) => {
-            latestReadings.set(reading.room_id, reading);
-          });
+          sensorData.forEach(
+            (reading: {
+              room_id: string;
+              occupancy: number;
+              temperature: number;
+              noise_level: number;
+              air_quality: number;
+              reading_timestamp: string;
+            }) => {
+              latestReadings.set(reading.room_id, reading);
+            }
+          );
         }
 
         // Debug info (remove in production)
@@ -121,38 +140,40 @@ export default function DashboardPage() {
         //   uniqueRoomReadings: latestReadings.size
         // });
 
-        roomsData.forEach((room: any) => {
-          const latestReading = latestReadings.get(room.id);
-          const occupancy = latestReading?.occupancy || 0;
-          const temperature = latestReading?.temperature || 72;
-          const noiseLevel = latestReading?.noise_level || 45;
-          const airQuality = latestReading?.air_quality || 82;
-          const utilization =
-            room.capacity > 0 ? (occupancy / room.capacity) * 100 : 0;
+        roomsData.forEach(
+          (room: { id: string; name: string; capacity: number }) => {
+            const latestReading = latestReadings.get(room.id);
+            const occupancy = latestReading?.occupancy || 0;
+            const temperature = latestReading?.temperature || 72;
+            const noiseLevel = latestReading?.noise_level || 45;
+            const airQuality = latestReading?.air_quality || 82;
+            const utilization =
+              room.capacity > 0 ? (occupancy / room.capacity) * 100 : 0;
 
-          // Count metrics
-          if (occupancy === 0) availableRooms++;
-          if (occupancy > room.capacity) roomsAboveCapacity++;
+            // Count metrics
+            if (occupancy === 0) availableRooms++;
+            if (occupancy > room.capacity) roomsAboveCapacity++;
 
-          totalTemperature += temperature;
-          temperatureReadings++;
-          totalNoiseLevel += noiseLevel;
-          noiseReadings++;
-          totalAirQuality += airQuality;
-          airQualityReadings++;
-          totalUtilization += utilization;
+            totalTemperature += temperature;
+            temperatureReadings++;
+            totalNoiseLevel += noiseLevel;
+            noiseReadings++;
+            totalAirQuality += airQuality;
+            airQualityReadings++;
+            totalUtilization += utilization;
 
-          // High utilization rooms (90%+)
-          if (utilization >= 90) {
-            highUtilRooms.push({
-              name: room.name,
-              occupancy,
-              capacity: room.capacity,
-              utilization_percentage: Math.round(utilization),
-              temperature,
-            });
+            // High utilization rooms (90%+)
+            if (utilization >= 90) {
+              highUtilRooms.push({
+                name: room.name,
+                occupancy,
+                capacity: room.capacity,
+                utilization_percentage: Math.round(utilization),
+                temperature,
+              });
+            }
           }
-        });
+        );
 
         // Calculate averages
         if (temperatureReadings > 0) {
@@ -201,14 +222,23 @@ export default function DashboardPage() {
 
       if (!bookingsError && recentBookings && roomsData) {
         const roomsMap = new Map(
-          roomsData.map((room: any) => [room.id, room.name])
+          roomsData.map((room: { id: string; name: string }) => [
+            room.id,
+            room.name,
+          ])
         );
-        const activity: RoomActivity[] = recentBookings.map((booking: any) => ({
-          room_name: roomsMap.get(booking.room_id) || "Unknown Room",
-          action: `Meeting: "${booking.title}"`,
-          time_ago: getTimeAgo(booking.created_at),
-          created_at: booking.created_at,
-        }));
+        const activity: RoomActivity[] = recentBookings.map(
+          (booking: {
+            title: string;
+            created_at: string;
+            room_id: string;
+          }) => ({
+            room_name: roomsMap.get(booking.room_id) || "Unknown Room",
+            action: `Meeting: "${booking.title}"`,
+            time_ago: getTimeAgo(booking.created_at),
+            created_at: booking.created_at,
+          })
+        );
         setRecentActivity(activity);
       } else {
         // No recent bookings - show empty state
