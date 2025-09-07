@@ -33,6 +33,7 @@ export interface RoomData {
   noiseLevel: number;
   position: RoomPosition;
   description?: string;
+  roomId?: string; // Real database room ID for live data
 }
 
 export interface FloorplanConfig {
@@ -548,54 +549,58 @@ export function generateFloorplan(): FloorplanConfig {
       description: "Elevator 4",
     },
 
-    // CONFERENCE ROOMS IN YELLOW - on either side of elevators
+    // CONFERENCE ROOMS IN YELLOW - on either side of elevators (LIVE DATA)
     {
       id: "conference-left-top",
-      name: "Conference Left Top",
+      name: "Cavapoo",
       type: "conference",
-      occupancy: 8,
+      occupancy: 1,
       capacity: 12,
-      temperature: 72,
+      temperature: 70.8,
       airQuality: 85,
-      noiseLevel: 48,
-      position: { x: 90, y: 50, width: 40, height: 30 },
-      description: "Conference room - left side",
+      noiseLevel: 45.2,
+      position: { x: 50, y: 40, width: 60, height: 50 },
+      description: "Large conference room with video equipment",
+      roomId: "48075858-e483-4928-9cdc-149e6703e1ff", // Real room ID
     },
     {
       id: "conference-right-top",
-      name: "Conference Right Top",
+      name: "Golden Retriever",
       type: "conference",
-      occupancy: 6,
-      capacity: 10,
-      temperature: 73,
-      airQuality: 87,
-      noiseLevel: 46,
-      position: { x: 170, y: 50, width: 40, height: 30 },
-      description: "Conference room - right side",
+      occupancy: 1,
+      capacity: 14,
+      temperature: 70.4,
+      airQuality: 90,
+      noiseLevel: 43.2,
+      position: { x: 180, y: 40, width: 60, height: 50 },
+      description: "Large conference room with presentation setup",
+      roomId: "65568e8b-79f7-489e-b632-163ddfc0ba94", // Real room ID
     },
     {
       id: "conference-left-bottom",
-      name: "Conference Left Bottom",
+      name: "Corgi",
       type: "conference",
-      occupancy: 6,
-      capacity: 10,
-      temperature: 73,
-      airQuality: 87,
-      noiseLevel: 46,
-      position: { x: 90, y: 100, width: 40, height: 30 },
-      description: "Conference room - left side",
+      occupancy: 0,
+      capacity: 4,
+      temperature: 70.2,
+      airQuality: 85,
+      noiseLevel: 34.1,
+      position: { x: 80, y: 100, width: 60, height: 50 },
+      description: "Small meeting room for intimate discussions",
+      roomId: "a5f976bc-dba0-43b3-a2e6-2c2b37108977", // Real room ID
     },
     {
       id: "conference-right-bottom",
-      name: "Conference Right Bottom",
+      name: "Beagle",
       type: "conference",
-      occupancy: 6,
-      capacity: 10,
-      temperature: 73,
-      airQuality: 87,
-      noiseLevel: 46,
-      position: { x: 170, y: 100, width: 40, height: 30 },
-      description: "Conference room - right side",
+      occupancy: 0,
+      capacity: 6,
+      temperature: 70.3,
+      airQuality: 89,
+      noiseLevel: 33.1,
+      position: { x: 160, y: 100, width: 60, height: 50 },
+      description: "Medium conference room with smart TV",
+      roomId: "bda31081-76d4-460e-9890-4d0a5484e256", // Real room ID
     },
   ];
 
@@ -615,11 +620,17 @@ export function getRoomColor(room: RoomData): string {
 
   // Special colors for different room types
   if (room.type === "elevator") return "#000000"; // Black for elevators
-  if (room.type === "conference") return "#fbbf24"; // Yellow for conference rooms
   if (room.type === "cubicles") return "transparent"; // Transparent for cubicles area
   if (room.type === "restroom") return "#9ca3af"; // Gray for restrooms
   if (room.type === "supply") return "#6b7280"; // Dark gray for supply rooms
   if (room.type === "reception") return "#3b82f6"; // Blue for reception
+
+  // Special logic for conference rooms
+  if (room.type === "conference") {
+    if (room.occupancy === 0) return "#10b981"; // Green - available (empty)
+    if (utilization >= 0.7) return "#f97316"; // Orange - at 70%+ capacity
+    return "#ef4444"; // Red - occupied (has people in it)
+  }
 
   // Color based on occupancy for offices
   if (utilization >= 1) return "#ef4444"; // Red - full/over capacity
@@ -634,16 +645,17 @@ export function getRoomColor(room: RoomData): string {
 export function getRoomGlow(room: RoomData): string {
   const utilization = room.occupancy / room.capacity;
 
-  // No glow for utility rooms
+  // No glow for utility rooms and conference rooms (using color instead)
   if (
     room.type === "elevator" ||
     room.type === "cubicles" ||
     room.type === "restroom" ||
-    room.type === "supply"
+    room.type === "supply" ||
+    room.type === "conference"
   )
     return "none";
 
-  // Glow based on occupancy
+  // Glow based on occupancy for other rooms
   if (utilization >= 1) return "0 0 20px rgba(239, 68, 68, 0.8)";
   if (utilization >= 0.7) return "0 0 15px rgba(245, 158, 11, 0.6)";
   if (utilization > 0) return "0 0 10px rgba(16, 185, 129, 0.4)";

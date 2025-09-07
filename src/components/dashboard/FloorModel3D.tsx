@@ -26,8 +26,8 @@ export function FloorModel3D({
   autoRotate = false,
   className = "",
 }: FloorModel3DProps) {
-  const [rotation, setRotation] = useState({ x: -20, y: 45, z: 0 });
-  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState({ x: 0, y: 0, z: 0 });
+  const [zoom, setZoom] = useState(1.8);
   const [isDragging, setIsDragging] = useState(false);
   const [isAutoRotating, setIsAutoRotating] = useState(autoRotate);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -82,8 +82,8 @@ export function FloorModel3D({
 
   // Control handlers
   const resetView = useCallback(() => {
-    setRotation({ x: -20, y: 45, z: 0 });
-    setZoom(1);
+    setRotation({ x: 0, y: 0, z: 0 });
+    setZoom(2.25);
   }, []);
 
   const toggleAutoRotate = useCallback(() => {
@@ -179,7 +179,7 @@ export function FloorModel3D({
         >
           {/* Floor Base */}
           <div
-            className="absolute bg-gray-100 border-2"
+            className="absolute bg-gray-100 border"
             style={{
               width: "300px",
               height: "200px",
@@ -193,7 +193,7 @@ export function FloorModel3D({
 
           {/* Floor Outline - Wireframe */}
           <div
-            className="absolute border-2"
+            className="absolute border"
             style={{
               width: "300px",
               height: "200px",
@@ -214,7 +214,7 @@ export function FloorModel3D({
               <div key={room.id} className="absolute">
                 {/* Room Structure */}
                 <div
-                  className="absolute border-2 transition-all duration-300"
+                  className="absolute border transition-all duration-300"
                   style={{
                     width: `${room.position.width}px`,
                     height: `${room.position.height}px`,
@@ -260,6 +260,39 @@ export function FloorModel3D({
                       }}
                     />
                   </>
+                )}
+
+                {/* Conference room data display */}
+                {room.type === "conference" && (
+                  <div
+                    className="absolute pointer-events-none text-gray-800"
+                    style={{
+                      left: `${room.position.x - 150}px`,
+                      top: `${room.position.y - 100}px`,
+                      width: `${room.position.width}px`,
+                      height: `${room.position.height}px`,
+                      transform: "translateZ(1px)",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      padding: "4px",
+                      fontSize: "10px",
+                      fontWeight: "500",
+                      textAlign: "center",
+                      lineHeight: "1.2",
+                    }}
+                  >
+                    <div style={{ fontWeight: "600", marginBottom: "2px" }}>
+                      {room.name}
+                    </div>
+                    <div style={{ fontSize: "8px", opacity: 0.8 }}>
+                      {room.occupancy}/{room.capacity} people
+                    </div>
+                    <div style={{ fontSize: "8px", opacity: 0.8 }}>
+                      {room.temperature}°F
+                    </div>
+                  </div>
                 )}
 
                 {/* Cubicles text - rotated vertically on both sides */}

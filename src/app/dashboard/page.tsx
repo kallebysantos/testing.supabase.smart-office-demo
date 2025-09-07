@@ -7,6 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Building2,
   Users,
   Calendar,
@@ -22,7 +29,8 @@ import { Loader2 } from "lucide-react";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { FloorModel3D } from "@/components/dashboard/FloorModel3D";
-import { generateFloorplan, RoomData } from "@/lib/fakefloorplan";
+import { generateFloorplan } from "@/lib/fakefloorplan";
+import { useRealtimeRoomData } from "@/hooks/useRealtimeRoomData";
 
 interface DashboardMetrics {
   availableRooms: number;
@@ -61,37 +69,24 @@ export default function DashboardPage() {
     "connecting" | "connected" | "disconnected"
   >("connecting");
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [selectedBuilding, setSelectedBuilding] = useState("2");
+  const [selectedFloor, setSelectedFloor] = useState("12");
 
   // Generate floorplan data with real-time metrics integration - All rooms
+  const initialFloorplanData = useMemo(() => {
+    return generateFloorplan();
+  }, []);
+
+  // Use real-time room data hook for conference rooms
+  const { roomData: realtimeRoomData, isConnected: roomDataConnected } =
+    useRealtimeRoomData(initialFloorplanData.rooms);
+
   const floorplanData = useMemo(() => {
-    const floorplan = generateFloorplan();
-
-    // Update room data with real-time metrics if available
-    if (metrics) {
-      floorplan.rooms.forEach((room) => {
-        // Add some variation to make it more realistic
-        const variation = Math.floor(Math.random() * 4) - 2;
-
-        room.temperature = (metrics.averageTemperature || 72) + variation;
-        room.airQuality = Math.max(
-          0,
-          Math.min(
-            100,
-            (metrics.averageAirQuality || 85) +
-              Math.floor(Math.random() * 10) -
-              5
-          )
-        );
-        room.noiseLevel = Math.max(
-          0,
-          (metrics.averageNoiseLevel || 42) + Math.floor(Math.random() * 8) - 4
-        );
-        // Keep existing occupancy for demo purposes, but could be updated from real data
-      });
-    }
-
-    return floorplan;
-  }, [metrics]);
+    return {
+      ...initialFloorplanData,
+      rooms: realtimeRoomData,
+    };
+  }, [initialFloorplanData, realtimeRoomData]);
 
   // Fetch real-time metrics from Supabase
   const fetchDashboardData = useCallback(async (showLoading = false) => {
@@ -108,9 +103,19 @@ export default function DashboardPage() {
       if (roomsError) throw roomsError;
 
       // Get latest sensor readings per room using a more efficient query
-      const { data: sensorData, error: sensorError } = await supabase.rpc(
+      const { data: sensorData, error: sensorError } = (await supabase.rpc(
         "get_latest_sensor_readings"
-      );
+      )) as {
+        data: Array<{
+          room_id: string;
+          occupancy: number;
+          temperature: number;
+          noise_level: number;
+          air_quality: number;
+          reading_timestamp: string;
+        }> | null;
+        error: any;
+      };
 
       if (sensorError) {
         console.warn("Error fetching sensor data:", sensorError);
@@ -418,17 +423,17 @@ export default function DashboardPage() {
                 <div className="flex items-center space-x-2">
                   <div
                     className={`h-2 w-2 rounded-full ${
-                      realtimeStatus === "connected"
+                      realtimeStatus === "connected" && roomDataConnected
                         ? "bg-green-500 animate-pulse"
-                        : realtimeStatus === "connecting"
+                        : realtimeStatus === "connecting" || !roomDataConnected
                         ? "bg-yellow-500 animate-pulse"
                         : "bg-red-500"
                     }`}
                   ></div>
                   <span className="text-sm text-gray-600">
-                    {realtimeStatus === "connected"
+                    {realtimeStatus === "connected" && roomDataConnected
                       ? "Live Data"
-                      : realtimeStatus === "connecting"
+                      : realtimeStatus === "connecting" || !roomDataConnected
                       ? "Connecting..."
                       : "Offline (30s refresh)"}
                     {lastUpdated && (
@@ -468,12 +473,47 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Building2 className="h-5 w-5 text-blue-600" />
-                <span>Live Floor Overview - Executive Floor</span>
+                <div className="flex items-center space-x-2">
+                  <Select
+                    value={selectedBuilding}
+                    onValueChange={setSelectedBuilding}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 2 }, (_, i) => i + 1).map(
+                        (building) => (
+                          <SelectItem
+                            key={building}
+                            value={building.toString()}
+                          >
+                            Building {building}
+                          </SelectItem>
+                        )
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <span className="text-gray-500">-</span>
+                  <Select
+                    value={selectedFloor}
+                    onValueChange={setSelectedFloor}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 12 }, (_, i) => i + 1).map(
+                        (floor) => (
+                          <SelectItem key={floor} value={floor.toString()}>
+                            Floor {floor}
+                          </SelectItem>
+                        )
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardTitle>
-              <p className="text-sm text-gray-600">
-                Interactive 3D model showing real-time occupancy and
-                environmental data across key conference rooms
-              </p>
             </CardHeader>
             <CardContent>
               <FloorModel3D
