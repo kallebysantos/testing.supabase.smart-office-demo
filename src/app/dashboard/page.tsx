@@ -26,11 +26,9 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { Loader2 } from "lucide-react";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase/client";
-import { FloorModel3D } from "@/components/dashboard/FloorModel3D";
-import { generateFloorplan } from "@/lib/fakefloorplan";
-import { useRealtimeRoomData } from "@/hooks/useRealtimeRoomData";
+import { FloorplanViewer } from "@/components/dashboard/FloorplanViewer";
 
 interface DashboardMetrics {
   availableRooms: number;
@@ -72,21 +70,6 @@ export default function DashboardPage() {
   const [selectedBuilding, setSelectedBuilding] = useState("2");
   const [selectedFloor, setSelectedFloor] = useState("12");
 
-  // Generate floorplan data with real-time metrics integration - All rooms
-  const initialFloorplanData = useMemo(() => {
-    return generateFloorplan();
-  }, []);
-
-  // Use real-time room data hook for conference rooms
-  const { roomData: realtimeRoomData, isConnected: roomDataConnected } =
-    useRealtimeRoomData(initialFloorplanData.rooms);
-
-  const floorplanData = useMemo(() => {
-    return {
-      ...initialFloorplanData,
-      rooms: realtimeRoomData,
-    };
-  }, [initialFloorplanData, realtimeRoomData]);
 
   // Fetch real-time metrics from Supabase
   const fetchDashboardData = useCallback(async (showLoading = false) => {
@@ -423,17 +406,17 @@ export default function DashboardPage() {
                 <div className="flex items-center space-x-2">
                   <div
                     className={`h-2 w-2 rounded-full ${
-                      realtimeStatus === "connected" && roomDataConnected
+                      realtimeStatus === "connected"
                         ? "bg-green-500 animate-pulse"
-                        : realtimeStatus === "connecting" || !roomDataConnected
+                        : realtimeStatus === "connecting"
                         ? "bg-yellow-500 animate-pulse"
                         : "bg-red-500"
                     }`}
                   ></div>
                   <span className="text-sm text-gray-600">
-                    {realtimeStatus === "connected" && roomDataConnected
+                    {realtimeStatus === "connected"
                       ? "Live Data"
-                      : realtimeStatus === "connecting" || !roomDataConnected
+                      : realtimeStatus === "connecting"
                       ? "Connecting..."
                       : "Offline (30s refresh)"}
                     {lastUpdated && (
@@ -516,9 +499,7 @@ export default function DashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <FloorModel3D
-                rooms={floorplanData.rooms}
-                autoRotate={false}
+              <FloorplanViewer
                 className="w-full"
               />
             </CardContent>
