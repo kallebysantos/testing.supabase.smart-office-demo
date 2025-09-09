@@ -8,6 +8,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { roomsApi } from "@/lib/api/rooms";
 import { realtimeManager } from "@/lib/api/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { filterRoomsByAccess } from "@/lib/utils/rls-filter";
 import type { RoomWithSensorData, SensorReading, ApiResponse } from "@/types";
 
 interface UseRoomsOptions {
@@ -24,6 +26,7 @@ interface UseRoomsReturn {
 
 export function useRooms(options: UseRoomsOptions = {}): UseRoomsReturn {
   const { enableRealtime = true, refetchInterval } = options;
+  const { userProfile } = useAuth();
 
   const [rooms, setRooms] = useState<RoomWithSensorData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +37,9 @@ export function useRooms(options: UseRoomsOptions = {}): UseRoomsReturn {
       const response = await roomsApi.getRoomsWithSensorData();
 
       if (response.success && response.data) {
-        setRooms(response.data);
+        // Apply RLS filtering based on user's floor access
+        const filteredRooms = filterRoomsByAccess(response.data, userProfile);
+        setRooms(filteredRooms);
         setError(null);
       } else {
         setError(response.error || "Failed to fetch rooms");
@@ -45,7 +50,7 @@ export function useRooms(options: UseRoomsOptions = {}): UseRoomsReturn {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userProfile]);
 
   const handleSensorUpdate = useCallback(
     (payload: { eventType: string; new?: SensorReading }) => {

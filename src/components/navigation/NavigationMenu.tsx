@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
+import { UserSwitcherDialog } from '@/components/auth/UserSwitcherDialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,7 +31,8 @@ import {
   Home,
   Users,
   Wrench,
-  Shield
+  Shield,
+  ArrowRightLeft
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -136,6 +138,7 @@ export default function NavigationMenu() {
   const { user, userProfile, signOut } = useAuth()
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isUserSwitcherOpen, setIsUserSwitcherOpen] = useState(false)
 
   if (!user || !userProfile) {
     return null
@@ -171,26 +174,32 @@ export default function NavigationMenu() {
             </div>
           </div>
 
-          {/* User Info */}
+          {/* User Info - Clickable for user switching */}
           <div className="px-4 mt-6">
-            <div className="flex items-center">
-              <Avatar className="h-10 w-10">
-                <AvatarFallback className="bg-primary text-primary-foreground">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              <div className="ml-3 flex-1">
-                <p className="text-sm font-medium text-gray-900">
-                  {userProfile.full_name || 'User'}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {userProfile.department || 'Department'}
-                </p>
-                <div className="mt-1">
-                  <RoleBadge role={userProfile.role} />
+            <button
+              onClick={() => setIsUserSwitcherOpen(true)}
+              className="w-full group hover:bg-gray-50 rounded-lg p-2 transition-colors"
+            >
+              <div className="flex items-center">
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="ml-3 flex-1 text-left">
+                  <p className="text-sm font-medium text-gray-900 group-hover:text-primary">
+                    {userProfile.full_name || 'User'}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {userProfile.department || 'Department'}
+                  </p>
+                  <div className="mt-1">
+                    <RoleBadge role={userProfile.role} />
+                  </div>
                 </div>
+                <ArrowRightLeft className="h-4 w-4 text-gray-400 group-hover:text-primary" />
               </div>
-            </div>
+            </button>
           </div>
 
           {/* Navigation */}
@@ -307,6 +316,12 @@ export default function NavigationMenu() {
       <div className="hidden md:block md:pl-64">
         {/* This div provides padding for the fixed sidebar */}
       </div>
+
+      {/* User Switcher Dialog */}
+      <UserSwitcherDialog 
+        open={isUserSwitcherOpen} 
+        onOpenChange={setIsUserSwitcherOpen} 
+      />
     </>
   )
 }

@@ -8,6 +8,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { bookingsApi } from "@/lib/api/bookings";
 import { realtimeManager } from "@/lib/api/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { filterBookingsArray } from "@/lib/utils/rls-filter";
 import type {
   BookingWithSensorData,
   BookingStatus,
@@ -32,6 +34,7 @@ export function useBookings(
   options: UseBookingsOptions = {}
 ): UseBookingsReturn {
   const { enableRealtime = true, includeSensorData = true } = options;
+  const { userProfile } = useAuth();
 
   const [bookings, setBookings] = useState<BookingWithSensorData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +47,12 @@ export function useBookings(
         : await bookingsApi.getBookings();
 
       if (response.success && response.data) {
-        setBookings(response.data as BookingWithSensorData[]);
+        // Apply RLS filtering based on user role
+        const filteredBookings = filterBookingsArray(
+          response.data as BookingWithSensorData[],
+          userProfile?.role
+        );
+        setBookings(filteredBookings);
         setError(null);
       } else {
         setError(response.error || "Failed to fetch bookings");
@@ -55,7 +63,7 @@ export function useBookings(
     } finally {
       setLoading(false);
     }
-  }, [includeSensorData]);
+  }, [includeSensorData, userProfile?.role]);
 
   const handleBookingUpdate = useCallback(
     (payload: { eventType: string }) => {

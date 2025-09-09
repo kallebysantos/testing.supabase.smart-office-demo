@@ -13,6 +13,7 @@ interface AuthContextType {
   loading: boolean;
   signOut: () => void;
   refreshProfile: () => void;
+  switchUser: (newUser: DemoUser) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,12 +47,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // This is a no-op but kept for compatibility
   };
 
+  const switchUser = (newUser: DemoUser) => {
+    localStorage.setItem("demo-user", JSON.stringify(newUser));
+    setUser(newUser);
+  };
+
   const value = {
     user,
     userProfile: user, // In demo mode, user and profile are the same
     loading,
     signOut,
     refreshProfile,
+    switchUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
