@@ -19,10 +19,9 @@ import { useAlerts } from '@/hooks/useAlerts'
 
 export default function AlertsPage() {
   const { user, userProfile, loading: authLoading } = useAuth()
-  const { 
-    tickets, 
-    loading: alertsLoading, 
-    error, 
+  const {
+    loading: alertsLoading,
+    error,
     filterByStatus,
     getStatusCounts,
     getHighPriorityTickets,

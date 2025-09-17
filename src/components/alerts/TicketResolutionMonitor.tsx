@@ -105,7 +105,7 @@ function ResolvedTicketItem({ ticket }: ResolvedTicketItemProps) {
       </div>
 
       <div className="space-y-1">
-        <h5 className="font-medium text-sm text-gray-900">{ticket.room.name}</h5>
+        <h5 className="font-medium text-sm text-gray-900">{ticket.room?.name || 'Unknown Room'}</h5>
         <p className="text-xs text-gray-600 line-clamp-2">{ticket.title}</p>
         
         <div className="flex items-center justify-between pt-2">

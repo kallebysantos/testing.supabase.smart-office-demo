@@ -4,7 +4,6 @@
  * Displays page title, description, live status indicator, and legend
  */
 
-import { Badge } from '@/components/ui/badge'
 
 interface RoomsHeaderProps {
   roomCount: number

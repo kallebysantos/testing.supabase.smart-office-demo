@@ -7,7 +7,6 @@
 
 import { ApiClient, supabase } from "./client";
 import type {
-  RoomBooking,
   BookingWithRoomData,
   BookingWithSensorData,
   BookingStatus,
@@ -43,7 +42,8 @@ export class BookingsApi extends ApiClient {
       if (error) return { data: null, error };
 
       const bookingsWithRoom =
-        data?.map((booking) => ({
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+        data?.map((booking: any) => ({
           ...booking,
           room: { name: booking.rooms.name },
           status: this.determineBookingStatus(
@@ -83,11 +83,13 @@ export class BookingsApi extends ApiClient {
 
       if (error) return { data: null, error };
 
+      /* eslint-disable @typescript-eslint/no-explicit-any */
       const bookingWithRoom = {
-        ...data,
-        room: { name: data.rooms.name },
-        status: this.determineBookingStatus(data.start_time, data.end_time),
+        ...(data as any),
+        room: { name: (data as any).rooms.name },
+        status: this.determineBookingStatus((data as any).start_time, (data as any).end_time),
       };
+      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       return { data: bookingWithRoom, error: null };
     });
@@ -135,7 +137,7 @@ export class BookingsApi extends ApiClient {
         success: true,
         data: bookingsWithSensor,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
         error: "Failed to fetch bookings with sensor data",
@@ -183,7 +185,8 @@ export class BookingsApi extends ApiClient {
       if (error) return { data: null, error };
 
       const bookingsWithRoom =
-        data?.map((booking) => ({
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+        data?.map((booking: any) => ({
           ...booking,
           room: { name: booking.rooms.name },
           status: this.determineBookingStatus(

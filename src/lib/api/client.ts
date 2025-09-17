@@ -58,7 +58,7 @@ export class ApiClient {
   }
 
   protected formatError(error: unknown): string {
-    if (error?.message) {
+    if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
       return error.message;
     }
     if (typeof error === "string") {
@@ -89,7 +89,8 @@ export class RealtimeManager {
   ) {
     const id = channelId || `${tableName}-${Date.now()}`;
 
-    const channel = supabase
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const channel = (supabase as any)
       .channel(id)
       .on(
         "postgres_changes",
@@ -101,6 +102,7 @@ export class RealtimeManager {
         callback
       )
       .subscribe();
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     this.channels.set(id, channel);
     return id;
@@ -109,14 +111,16 @@ export class RealtimeManager {
   unsubscribe(channelId: string) {
     const channel = this.channels.get(channelId);
     if (channel) {
-      supabase.removeChannel(channel);
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+      supabase.removeChannel(channel as any);
       this.channels.delete(channelId);
     }
   }
 
   unsubscribeAll() {
     this.channels.forEach((channel, id) => {
-      supabase.removeChannel(channel);
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+      supabase.removeChannel(channel as any);
       this.channels.delete(id);
     });
   }

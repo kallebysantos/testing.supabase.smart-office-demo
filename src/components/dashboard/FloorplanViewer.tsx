@@ -10,8 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { Users, Thermometer, Volume2, Wind, Crosshair } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Users, Thermometer, Volume2, Wind } from "lucide-react";
 
 interface Room {
   id: string;
@@ -45,12 +44,12 @@ const ROOM_POSITIONS = [
   { name: "Conference Room 4", x: 69.0, y: 62.1 },  // 1300/1600 * 100, 740/800 * 100
 ];
 
-export function FloorplanViewer({ className = "", debugMode = false }: FloorplanViewerProps) {
+export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [sensorData, setSensorData] = useState<Map<string, SensorReading>>(new Map());
   const [loading, setLoading] = useState(true);
-  const [showDebug, setShowDebug] = useState(debugMode);
-  const [clickPosition, setClickPosition] = useState<{x: number, y: number} | null>(null);
+  // const [showDebug, setShowDebug] = useState(debugMode);
+  // const [clickPosition, setClickPosition] = useState<{x: number, y: number} | null>(null);
   const [realtimeStatus, setRealtimeStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
   const [recentlyUpdated, setRecentlyUpdated] = useState<Set<string>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
@@ -82,18 +81,21 @@ export function FloorplanViewer({ className = "", debugMode = false }: Floorplan
         const { data: sensorReadings, error: sensorError } = await supabase
           .from("sensor_readings")
           .select("*")
-          .in("room_id", roomsData.map(r => r.id))
+          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+          .in("room_id", roomsData.map((r: any) => r.id))
           .order("last_updated", { ascending: false });
 
         if (sensorError) throw sensorError;
 
         if (sensorReadings) {
           const latestReadings = new Map<string, SensorReading>();
-          sensorReadings.forEach(reading => {
+          /* eslint-disable @typescript-eslint/no-explicit-any */
+          (sensorReadings as any[]).forEach((reading: any) => {
             if (!latestReadings.has(reading.room_id)) {
               latestReadings.set(reading.room_id, reading);
             }
           });
+          /* eslint-enable @typescript-eslint/no-explicit-any */
           setSensorData(latestReadings);
         }
       }
@@ -193,24 +195,24 @@ export function FloorplanViewer({ className = "", debugMode = false }: Floorplan
   const getStatusBadgeVariant = (status: "available" | "occupied" | "over-capacity") => {
     switch (status) {
       case "available":
-        return "success" as const;
+        return "secondary" as const;
       case "occupied":
-        return "warning" as const;
+        return "default" as const;
       case "over-capacity":
         return "destructive" as const;
     }
   };
 
-  const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!showDebug || !containerRef.current) return;
-    
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
-    setClickPosition({ x, y });
-    console.log(`Clicked at: ${x.toFixed(1)}%, ${y.toFixed(1)}%`);
-  };
+  // const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  //   if (!showDebug || !containerRef.current) return;
+  //
+  //   const rect = containerRef.current.getBoundingClientRect();
+  //   const x = ((e.clientX - rect.left) / rect.width) * 100;
+  //   const y = ((e.clientY - rect.top) / rect.height) * 100;
+  //
+  //   setClickPosition({ x, y });
+  //   console.log(`Clicked at: ${x.toFixed(1)}%, ${y.toFixed(1)}%`);
+  // };
 
   if (loading) {
     return (

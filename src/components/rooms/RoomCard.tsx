@@ -5,6 +5,7 @@
  * responsive design and accessibility
  */
 
+import Image from 'next/image'
 import { Building2, Users, Thermometer, Volume2, Wind } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -41,11 +42,15 @@ function RoomImage({ room, statusColor }: RoomImageProps) {
   return (
     <div className="relative">
       {room.image_url ? (
-        <img 
-          src={room.image_url} 
-          alt={`${room.name} interior`}
-          className="w-full h-48 object-cover"
-        />
+        <div className="relative w-full h-48">
+          <Image
+            src={room.image_url}
+            alt={`${room.name} interior`}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        </div>
       ) : (
         <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
           <Building2 className="h-12 w-12 text-gray-400" aria-hidden="true" />

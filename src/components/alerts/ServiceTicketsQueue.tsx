@@ -138,7 +138,7 @@ function TicketQueueItem({ ticket }: TicketQueueItemProps) {
       </div>
 
       <div className="space-y-1">
-        <h5 className="font-medium text-sm text-gray-900">{ticket.room.name}</h5>
+        <h5 className="font-medium text-sm text-gray-900">{ticket.room?.name || 'Unknown Room'}</h5>
         <p className="text-xs text-gray-600 line-clamp-2">{ticket.description}</p>
         
         <div className="flex items-center justify-between pt-2">
@@ -159,14 +159,17 @@ function TicketQueueItem({ ticket }: TicketQueueItemProps) {
             <div className="flex items-center justify-between">
               <span className="text-gray-600">Occupancy:</span>
               <span className="font-medium text-red-600">
-                {ticket.violation_data.occupancy}/{ticket.violation_data.capacity}
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {(ticket.violation_data as any).occupancy}/{(ticket.violation_data as any).capacity}
               </span>
             </div>
-            {ticket.violation_data.violation_percentage && (
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {(ticket.violation_data as any).violation_percentage && (
               <div className="flex items-center justify-between">
                 <span className="text-gray-600">Over capacity:</span>
                 <span className="font-medium text-red-600">
-                  {ticket.violation_data.violation_percentage}%
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  {(ticket.violation_data as any).violation_percentage}%
                 </span>
               </div>
             )}

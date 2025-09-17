@@ -138,7 +138,9 @@ export const BookingCard = memo<BookingCardProps>(function BookingCard({
               {dateInfo.formattedStart} - {dateInfo.formattedEnd}
             </time>
             {!dateInfo.isValidTimeRange && (
-              <AlertTriangle className="h-4 w-4 ml-2 text-yellow-500" title="Invalid time range" />
+              <span title="Invalid time range">
+                <AlertTriangle className="h-4 w-4 ml-2 text-yellow-500" />
+              </span>
             )}
           </div>
           

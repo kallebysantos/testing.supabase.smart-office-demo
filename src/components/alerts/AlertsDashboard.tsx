@@ -149,7 +149,7 @@ function HighPriorityTicketItem({ ticket }: HighPriorityTicketItemProps) {
               className="opacity-70"
             />
           )}
-          <span className="font-medium text-gray-900 text-sm">{ticket.room.name}</span>
+          <span className="font-medium text-gray-900 text-sm">{ticket.room?.name || 'Unknown Room'}</span>
           <Badge variant="destructive" className="text-xs">
             Priority {ticket.priority}
           </Badge>
@@ -185,7 +185,7 @@ function RecentActivityItem({ ticket }: RecentActivityItemProps) {
       {getActivityIcon()}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-900 truncate">
-          {ticket.room.name}
+          {ticket.room?.name || 'Unknown Room'}
         </p>
         <p className="text-xs text-gray-500">
           {getActivityText()} • {formatTimeAgo(ticket.updated_at)}

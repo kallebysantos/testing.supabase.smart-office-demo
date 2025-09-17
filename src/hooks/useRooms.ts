@@ -10,7 +10,7 @@ import { roomsApi } from "@/lib/api/rooms";
 import { realtimeManager } from "@/lib/api/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { filterRoomsByAccess } from "@/lib/utils/rls-filter";
-import type { RoomWithSensorData, SensorReading, ApiResponse } from "@/types";
+import type { RoomWithSensorData, SensorReading } from "@/types";
 
 interface UseRoomsOptions {
   enableRealtime?: boolean;

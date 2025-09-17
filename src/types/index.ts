@@ -105,6 +105,10 @@ export interface BookingWithSensorData extends BookingWithRoomData {
   lastSensorUpdate?: string;
 }
 
+export interface ServiceTicketWithRoom extends ServiceTicket {
+  room?: Pick<Room, "name">;
+}
+
 // Analytics types
 export interface DashboardMetrics {
   availableRooms: number;

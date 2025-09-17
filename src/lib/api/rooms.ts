@@ -115,7 +115,7 @@ export class RoomsApi extends ApiClient {
         success: true,
         data: roomsWithData
       }
-    } catch (error) {
+    } catch {
       return {
         success: false,
         error: 'Failed to combine room and sensor data'

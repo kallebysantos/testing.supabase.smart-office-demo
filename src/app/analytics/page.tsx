@@ -31,7 +31,7 @@ import {
   Activity,
   BarChart3,
   Loader2,
-  Database,
+  Database as DatabaseIcon,
   Zap,
   ArrowUp,
   ArrowDown,
@@ -39,6 +39,11 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase/client";
+import type { Database } from "@/lib/supabase/types";
+
+type SensorReading = Database["public"]["Tables"]["sensor_readings"]["Row"];
+type RoomBooking = Database["public"]["Tables"]["room_bookings"]["Row"];
+type RoomData = Pick<Database["public"]["Tables"]["rooms"]["Row"], "id" | "name" | "capacity">;
 
 interface RoomUtilizationData {
   room_name: string;
@@ -112,32 +117,38 @@ export default function AnalyticsPage() {
 
       if (roomsError) throw roomsError;
 
+      const typedRoomsData = roomsData as RoomData[] | null;
+
       // Get historical sensor readings (last 30 days)
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      const { data: sensorData, error: sensorError } = await supabase
+      const { data: sensorData } = await supabase
         .from("sensor_readings")
         .select("*")
         .gte("timestamp", thirtyDaysAgo.toISOString())
         .order("timestamp", { ascending: false });
 
+      const typedSensorData = sensorData as SensorReading[] | null;
+
       // Get bookings data (last 30 days)
-      const { data: bookingsData, error: bookingsError } = await supabase
+      const { data: bookingsData } = await supabase
         .from("room_bookings")
         .select("*")
         .gte("start_time", thirtyDaysAgo.toISOString());
+
+      const typedBookingsData = bookingsData as RoomBooking[] | null;
 
       // Simulate processing delay based on "query complexity"
       await new Promise((resolve) => setTimeout(resolve, baseDelay));
 
       // Process room utilization data
       const roomUtilization: RoomUtilizationData[] =
-        roomsData?.map((room) => {
+        typedRoomsData?.map((room) => {
           const roomSensors =
-            sensorData?.filter((s: any) => s.room_id === room.id) || [];
+            typedSensorData?.filter((s) => s.room_id === room.id) || [];
           const roomBookings =
-            bookingsData?.filter((b: any) => b.room_id === room.id) || [];
+            typedBookingsData?.filter((b) => b.room_id === room.id) || [];
 
           const avgOccupancy =
             roomSensors.length > 0
@@ -153,19 +164,19 @@ export default function AnalyticsPage() {
 
           const avgTemperature =
             roomSensors.length > 0
-              ? roomSensors.reduce((sum, s) => sum + s.temperature, 0) /
+              ? roomSensors.reduce((sum, s) => sum + (s.temperature ?? 72), 0) /
                 roomSensors.length
               : 72;
 
           const avgAirQuality =
             roomSensors.length > 0
-              ? roomSensors.reduce((sum, s) => sum + s.air_quality, 0) /
+              ? roomSensors.reduce((sum, s) => sum + (s.air_quality ?? 85), 0) /
                 roomSensors.length
               : 85;
 
           const avgNoiseLevel =
             roomSensors.length > 0
-              ? roomSensors.reduce((sum, s) => sum + s.noise_level, 0) /
+              ? roomSensors.reduce((sum, s) => sum + (s.noise_level ?? 45), 0) /
                 roomSensors.length
               : 45;
 
@@ -198,15 +209,15 @@ export default function AnalyticsPage() {
         const dateStr = date.toISOString().split("T")[0];
 
         const dayData =
-          sensorData?.filter((s) => s.timestamp.startsWith(dateStr)) || [];
+          typedSensorData?.filter((s) => s.timestamp.startsWith(dateStr)) || [];
 
         const dayBookings =
-          bookingsData?.filter((b) => b.start_time.startsWith(dateStr)) || [];
+          typedBookingsData?.filter((b) => b.start_time.startsWith(dateStr)) || [];
 
         const avgUtilization =
           dayData.length > 0
             ? dayData.reduce((sum, s) => {
-                const room = roomsData?.find((r) => r.id === s.room_id);
+                const room = typedRoomsData?.find((r) => r.id === s.room_id);
                 return (
                   sum +
                   (room?.capacity ? (s.occupancy / room.capacity) * 100 : 0)
@@ -221,13 +232,13 @@ export default function AnalyticsPage() {
           }),
           utilization: Math.round(avgUtilization),
           capacity_violations: dayData.filter((s) => {
-            const room = roomsData?.find((r) => r.id === s.room_id);
+            const room = typedRoomsData?.find((r) => r.id === s.room_id);
             return room && s.occupancy > room.capacity;
           }).length,
           avg_temperature:
             dayData.length > 0
               ? Math.round(
-                  (dayData.reduce((sum, s) => sum + s.temperature, 0) /
+                  (dayData.reduce((sum, s) => sum + (s.temperature ?? 72), 0) /
                     dayData.length) *
                     10
                 ) / 10
@@ -235,14 +246,14 @@ export default function AnalyticsPage() {
           avg_air_quality:
             dayData.length > 0
               ? Math.round(
-                  dayData.reduce((sum, s) => sum + s.air_quality, 0) /
+                  dayData.reduce((sum, s) => sum + (s.air_quality ?? 85), 0) /
                     dayData.length
                 )
               : 80 + Math.round(Math.random() * 15),
           avg_noise:
             dayData.length > 0
               ? Math.round(
-                  dayData.reduce((sum, s) => sum + s.noise_level, 0) /
+                  dayData.reduce((sum, s) => sum + (s.noise_level ?? 45), 0) /
                     dayData.length
                 )
               : 40 + Math.round(Math.random() * 20),
@@ -255,7 +266,7 @@ export default function AnalyticsPage() {
       for (let hour = 8; hour <= 18; hour++) {
         const hourStr = `${hour}:00`;
         const hourData =
-          sensorData?.filter((s) => {
+          typedSensorData?.filter((s) => {
             const sensorHour = new Date(s.timestamp).getHours();
             return sensorHour === hour;
           }) || [];
@@ -267,7 +278,7 @@ export default function AnalyticsPage() {
             : Math.random() * 15 + 5;
 
         const hourBookings =
-          bookingsData?.filter((b) => {
+          typedBookingsData?.filter((b) => {
             const startHour = new Date(b.start_time).getHours();
             return startHour === hour;
           }).length || Math.floor(Math.random() * 8);
@@ -304,8 +315,8 @@ export default function AnalyticsPage() {
         timeSeriesData,
         hourlyUsage,
         roomPerformance,
-        totalRooms: roomsData?.length || 0,
-        totalBookings: bookingsData?.length || 0,
+        totalRooms: typedRoomsData?.length || 0,
+        totalBookings: typedBookingsData?.length || 0,
         avgUtilization: Math.round(
           roomUtilization.reduce((sum, r) => sum + r.avg_utilization, 0) /
             (roomUtilization.length || 1)
@@ -372,7 +383,7 @@ export default function AnalyticsPage() {
                 </p>
                 <div className="mt-3">
                   <div className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                    <Database className="h-3 w-3 mr-1" />
+                    <DatabaseIcon className="h-3 w-3 mr-1" />
                     Demo data used where historical data is limited
                   </div>
                 </div>
@@ -381,7 +392,7 @@ export default function AnalyticsPage() {
               {/* Iceberg Buckets Toggle */}
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-3">
-                  <Database className="h-5 w-5 text-gray-600" />
+                  <DatabaseIcon className="h-5 w-5 text-gray-600" />
                   <span className="text-sm text-gray-600">
                     Query time:{" "}
                     <span className="font-medium">{queryTime}ms</span>

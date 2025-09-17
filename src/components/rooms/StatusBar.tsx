@@ -2,11 +2,10 @@
 
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Building2, 
-  Users, 
-  Clock, 
-  Activity,
+import {
+  Building2,
+  Users,
+  Clock,
   CheckCircle,
   AlertCircle,
   Circle
@@ -27,7 +26,7 @@ export default function StatusBar({
   // Calculate statistics
   const totalRooms = roomStatuses.length
   const availableRooms = roomStatuses.filter(rs => rs.occupancy === 0).length
-  const occupiedRooms = roomStatuses.filter(rs => rs.occupancy > 0).length
+  // const occupiedRooms = roomStatuses.filter(rs => rs.occupancy > 0).length
   const totalOccupancy = roomStatuses.reduce((sum, rs) => sum + rs.occupancy, 0)
   const totalCapacity = roomStatuses.reduce((sum, rs) => sum + rs.room.capacity, 0)
   const overallOccupancyPercentage = totalCapacity > 0 ? (totalOccupancy / totalCapacity) * 100 : 0

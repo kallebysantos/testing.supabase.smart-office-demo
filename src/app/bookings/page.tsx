@@ -23,7 +23,7 @@ import type { BookingStatus, Room } from '@/types'
 
 export default function BookingsPage() {
   const { user, userProfile, loading: authLoading } = useAuth()
-  const { bookings, loading: bookingsLoading, error, filterByStatus, getStatusCounts } = useBookings()
+  const { loading: bookingsLoading, error, filterByStatus, getStatusCounts } = useBookings()
   const [activeFilter, setActiveFilter] = useState<BookingStatus>('active')
   const [viewType, setViewType] = useState<ViewType>('list')
   const [rooms, setRooms] = useState<Room[]>([])

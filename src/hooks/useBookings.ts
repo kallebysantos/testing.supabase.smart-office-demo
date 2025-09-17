@@ -5,7 +5,7 @@
  * for active meetings
  */
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { bookingsApi } from "@/lib/api/bookings";
 import { realtimeManager } from "@/lib/api/client";
 import { useAuth } from "@/contexts/AuthContext";

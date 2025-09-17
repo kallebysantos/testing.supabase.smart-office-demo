@@ -97,7 +97,7 @@ export default function DashboardPage() {
           air_quality: number;
           reading_timestamp: string;
         }> | null;
-        error: any;
+        error: unknown;
       };
 
       if (sensorError) {

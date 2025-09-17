@@ -5,8 +5,8 @@
  */
 
 import { useMemo } from 'react'
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameDay, isSameMonth, parseISO, isToday } from 'date-fns'
-import { ChevronLeft, ChevronRight, Calendar, Clock, Users, MapPin } from 'lucide-react'
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, parseISO, isToday } from 'date-fns'
+import { ChevronLeft, ChevronRight, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import type { BookingWithSensorData } from '@/types'

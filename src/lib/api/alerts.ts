@@ -9,7 +9,6 @@ import { ApiClient, supabase } from "./client";
 import type {
   ServiceTicket,
   TicketStatus,
-  TicketSeverity,
   ApiResponse,
 } from "@/types";
 
@@ -32,7 +31,8 @@ export class AlertsApi extends ApiClient {
       if (error) return { data: null, error };
 
       const ticketsWithRoom =
-        data?.map((ticket) => ({
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+        data?.map((ticket: any) => ({
           ...ticket,
           room: {
             name: ticket.rooms.name,
@@ -72,9 +72,9 @@ export class AlertsApi extends ApiClient {
    * Only shows Priority 1 tickets in critical violations section
    */
   getHighPriorityTickets(
-    tickets: ServiceTicket[],
+    tickets: ServiceTicketWithRoom[],
     maxPriority = 1
-  ): ServiceTicket[] {
+  ): ServiceTicketWithRoom[] {
     return tickets
       .filter(
         (ticket) =>
@@ -87,9 +87,9 @@ export class AlertsApi extends ApiClient {
    * Get recent activity (newly created, assigned, or resolved tickets)
    */
   getRecentTicketActivity(
-    tickets: ServiceTicket[],
+    tickets: ServiceTicketWithRoom[],
     hoursBack = 24
-  ): ServiceTicket[] {
+  ): ServiceTicketWithRoom[] {
     const cutoffTime = new Date(Date.now() - hoursBack * 60 * 60 * 1000);
 
     return tickets
@@ -122,7 +122,8 @@ export class AlertsApi extends ApiClient {
     resolutionNotes: string
   ): Promise<ApiResponse<ServiceTicket>> {
     return this.handleResponse(async () => {
-      return supabase
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      return (supabase as any)
         .from("service_tickets")
         .update({
           status: "resolved",
@@ -133,6 +134,7 @@ export class AlertsApi extends ApiClient {
         .eq("id", ticketId)
         .select()
         .single();
+      /* eslint-enable @typescript-eslint/no-explicit-any */
     });
   }
 
@@ -161,7 +163,7 @@ export class AlertsApi extends ApiClient {
         success: true,
         data,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
         error: "Failed to communicate with violation detection service",

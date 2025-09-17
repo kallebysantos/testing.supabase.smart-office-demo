@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabase/client";
-import RoomCard from "./RoomCard";
+import { RoomCard } from "./RoomCard";
 import RoomFilters from "./RoomFilters";
 import StatusBar from "./StatusBar";
 import { Button } from "@/components/ui/button";
@@ -99,12 +99,14 @@ export default function RoomGrid({ initialRooms = [] }: RoomGridProps) {
       const latestReadings: SensorReading[] = [];
       const roomReadingMap = new Map<string, SensorReading>();
 
-      data?.forEach((reading) => {
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      (data as any[])?.forEach((reading: any) => {
         if (reading.room_id && !roomReadingMap.has(reading.room_id)) {
           roomReadingMap.set(reading.room_id, reading);
           latestReadings.push(reading);
         }
       });
+      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       setSensorReadings(latestReadings);
       setLastUpdate(new Date().toISOString());
@@ -352,7 +354,8 @@ export default function RoomGrid({ initialRooms = [] }: RoomGridProps) {
               key={roomStatus.room.id}
               className="transform transition-all duration-300 hover:scale-105"
             >
-              <RoomCard roomStatus={roomStatus} />
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <RoomCard room={roomStatus.room as any} />
             </div>
           ))}
         </div>

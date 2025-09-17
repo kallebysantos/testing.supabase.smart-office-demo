@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Check, Shield, Users, Building2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import type { UserProfile } from "@/types";
+import type { UserProfile, UserId } from "@/types";
 
 interface UserSwitcherDialogProps {
   open: boolean;
@@ -23,24 +23,22 @@ interface UserSwitcherDialogProps {
 // Define our demo users with different access levels
 const DEMO_USERS: UserProfile[] = [
   {
-    id: "hermione-granger",
+    id: "hermione-granger" as UserId,
     email: "hermione.granger@dewey-cheatham-howe.law",
     full_name: "Hermione Granger",
     role: "facilities",
     department: "Facilities Management",
-    floors_access: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    floor_access: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
   },
   {
-    id: "ron-weasley",
+    id: "ron-weasley" as UserId,
     email: "ron.weasley@dewey-cheatham-howe.law",
     full_name: "Ron Weasley",
     role: "employee",
     department: "Legal",
-    floors_access: [12, 13],
+    floor_access: [12, 13],
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
   },
 ];
 
@@ -145,7 +143,7 @@ export function UserSwitcherDialog({ open, onOpenChange }: UserSwitcherDialogPro
                         ? "bg-primary text-primary-foreground" 
                         : "bg-secondary text-secondary-foreground"
                     }`}>
-                      {getInitials(demoUser.full_name)}
+                      {getInitials(demoUser.full_name || demoUser.email)}
                     </AvatarFallback>
                   </Avatar>
                   
@@ -174,7 +172,7 @@ export function UserSwitcherDialog({ open, onOpenChange }: UserSwitcherDialogPro
                     </p>
                     
                     <div className="text-xs text-gray-500">
-                      Access to floors: {demoUser.floors_access.join(", ")}
+                      Access to floors: {demoUser.floor_access.join(", ")}
                     </div>
                   </div>
                 </div>
@@ -189,8 +187,8 @@ export function UserSwitcherDialog({ open, onOpenChange }: UserSwitcherDialogPro
             <div className="text-sm text-blue-900">
               <p className="font-semibold mb-1">Row Level Security (RLS) Simulation</p>
               <p className="text-blue-700">
-                In production, Supabase RLS policies would automatically filter data based on the authenticated user's 
-                role and permissions. This demo simulates that behavior by filtering meeting names and sensitive data 
+                In production, Supabase RLS policies would automatically filter data based on the authenticated user&apos;s
+                role and permissions. This demo simulates that behavior by filtering meeting names and sensitive data
                 client-side based on the selected user profile.
               </p>
             </div>

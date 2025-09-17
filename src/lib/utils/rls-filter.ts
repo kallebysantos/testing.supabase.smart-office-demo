@@ -52,7 +52,7 @@ export function hasFloorAccess(
   }
   
   // Check if floor is in user's access list
-  return userProfile.floors_access?.includes(floor) || false;
+  return userProfile.floor_access?.includes(floor) || false;
 }
 
 /**
@@ -71,6 +71,6 @@ export function filterRoomsByAccess<T extends { floor: number }>(
   
   // Filter based on floor access
   return rooms.filter(room => 
-    userProfile.floors_access?.includes(room.floor) || false
+    userProfile.floor_access?.includes(room.floor) || false
   );
 }

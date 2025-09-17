@@ -62,7 +62,7 @@ export function useAlerts(options: UseAlertsOptions = {}): UseAlertsReturn {
       );
 
       if (payload.eventType === "INSERT" && payload.new) {
-        const newTicket = payload.new as ServiceTicket;
+        // const newTicket = payload.new as ServiceTicket;
         // For new tickets, refetch to get room data
         fetchTickets();
       } else if (payload.eventType === "UPDATE" && payload.new) {

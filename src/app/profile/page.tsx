@@ -34,13 +34,15 @@ export default function ProfilePage() {
     setMessage('')
 
     try {
-      const { error } = await supabase
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      const { error } = await (supabase as any)
         .from('user_profiles')
         .update({
           full_name: fullName,
           department: department,
         })
         .eq('id', user.id)
+      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       if (error) {
         throw error
@@ -234,18 +236,12 @@ export default function ProfilePage() {
                     </p>
                   </div>
                   <div>
-                    <Label className="font-medium text-gray-700">Last Sign In</Label>
+                    <Label className="font-medium text-gray-700">Account Created</Label>
                     <p className="mt-1 text-gray-600">
-                      {user.last_sign_in_at ? 
-                        new Date(user.last_sign_in_at).toLocaleString() : 
+                      {userProfile.created_at ?
+                        new Date(userProfile.created_at).toLocaleString() :
                         'Unknown'
                       }
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="font-medium text-gray-700">Email Confirmed</Label>
-                    <p className="mt-1 text-gray-600">
-                      {user.email_confirmed_at ? 'Yes' : 'No'}
                     </p>
                   </div>
                 </div>
