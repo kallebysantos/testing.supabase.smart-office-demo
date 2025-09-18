@@ -19,7 +19,7 @@ import {
   Thermometer,
   Hash
 } from 'lucide-react'
-import { FilterOptions, SortOption, SortOrder } from '@/types/room'
+import { FilterOptions, SortOption, SortOrder } from '@/types'
 
 interface RoomFiltersProps {
   filters: FilterOptions

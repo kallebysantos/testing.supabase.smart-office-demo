@@ -1,66 +1,33 @@
 /**
  * Central type definitions for the Smart Office Dashboard
  *
- * This file contains all shared types to ensure consistency across the application
- * and eliminate duplication. All types are branded for additional type safety.
+ * This file extends Supabase-generated types with branded types and UI-specific interfaces.
+ * Database types are imported from @/lib/supabase/types (auto-generated)
  */
 
-// Branded types for better type safety
-export type RoomId = string & { readonly __brand: unique symbol };
-export type UserId = string & { readonly __brand: unique symbol };
-export type BookingId = string & { readonly __brand: unique symbol };
+import type { Database } from "@/lib/supabase/types";
 
-// Core domain entities
-export interface Room {
-  id: RoomId;
-  name: string;
-  capacity: number;
-  floor: number;
-  building: string;
-  amenities?: string[];
-  image_url?: string;
-  created_at: string;
-}
+// ============================================================================
+// CORE DATABASE TYPES (from Supabase)
+// ============================================================================
 
-export interface SensorReading {
-  id: string;
-  room_id: RoomId;
-  occupancy: number;
-  temperature: number;
-  noise_level: number;
-  air_quality: number;
-  timestamp: string;
-}
+// Direct exports from Supabase-generated types
+export type Room = Database["public"]["Tables"]["rooms"]["Row"];
+export type SensorReading = Database["public"]["Tables"]["sensor_readings"]["Row"];
+export type RoomBooking = Database["public"]["Tables"]["room_bookings"]["Row"];
+export type UserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];
+export type FacilityAlert = Database["public"]["Tables"]["facility_alerts"]["Row"];
+export type DailyRoomAnalytics = Database["public"]["Tables"]["daily_room_analytics"]["Row"];
 
-export interface RoomBooking {
-  id: BookingId;
-  room_id: RoomId;
-  title: string;
-  organizer_email: string;
-  start_time: string;
-  end_time: string;
-  attendee_count: number;
-  created_at: string;
-}
-
-export interface UserProfile {
-  id: UserId;
-  email: string;
-  full_name: string | null;
-  department: string | null;
-  role: UserRole;
-  floor_access: number[];
-  created_at: string;
-}
-
+// Service tickets table (not in generated types yet - needs regeneration)
 export interface ServiceTicket {
   id: string;
-  room_id: RoomId;
-  ticket_type: TicketType;
+  room_id: string;
+  ticket_type: "capacity_violation" | "maintenance" | "environmental";
   title: string;
   description: string;
-  severity: TicketSeverity;
-  status: TicketStatus;
+  severity: "low" | "medium" | "high" | "critical";
+  status: "queued" | "processing" | "assigned" | "resolved";
   priority: number;
   trigger_reading_id?: string;
   violation_data?: Record<string, unknown>;
@@ -74,15 +41,31 @@ export interface ServiceTicket {
   updated_at: string;
 }
 
-// Enums and union types
+// ============================================================================
+// BRANDED TYPES (for type safety)
+// ============================================================================
+
+export type RoomId = string & { readonly __brand: unique symbol };
+export type UserId = string & { readonly __brand: unique symbol };
+export type BookingId = string & { readonly __brand: unique symbol };
+
+// ============================================================================
+// ENUM TYPES
+// ============================================================================
+
 export type UserRole = "employee" | "facilities" | "admin";
 export type BookingStatus = "upcoming" | "active" | "completed";
 export type RoomStatus = "available" | "occupied" | "full" | "unknown";
 export type TicketStatus = "queued" | "processing" | "assigned" | "resolved";
 export type TicketSeverity = "low" | "medium" | "high" | "critical";
 export type TicketType = "capacity_violation" | "maintenance" | "environmental";
+export type AvailabilityStatus = 'available' | 'occupied' | 'booked' | 'maintenance';
 
-// Derived types for UI components
+// ============================================================================
+// DERIVED/UI TYPES
+// ============================================================================
+
+// Room types with additional data
 export interface RoomWithSensorData extends Room {
   currentOccupancy?: number;
   currentTemperature?: number;
@@ -92,6 +75,21 @@ export interface RoomWithSensorData extends Room {
   status: RoomStatus;
 }
 
+export interface RoomWithLatestReading extends Room {
+  latest_reading?: SensorReading | null;
+}
+
+export interface RoomStatusData {
+  room: Room;
+  occupancy: number;
+  temperature: number | null;
+  noise_level: number | null;
+  air_quality: number | null;
+  availability: AvailabilityStatus;
+  last_updated: string;
+}
+
+// Booking types with additional data
 export interface BookingWithRoomData extends RoomBooking {
   room: Pick<Room, "name">;
   status: BookingStatus;
@@ -105,11 +103,15 @@ export interface BookingWithSensorData extends BookingWithRoomData {
   lastSensorUpdate?: string;
 }
 
+// Service ticket with room data
 export interface ServiceTicketWithRoom extends ServiceTicket {
   room?: Pick<Room, "name">;
 }
 
-// Analytics types
+// ============================================================================
+// ANALYTICS TYPES
+// ============================================================================
+
 export interface DashboardMetrics {
   availableRooms: number;
   roomsAboveCapacity: number;
@@ -142,7 +144,23 @@ export interface TimeSeriesData {
   bookings: number;
 }
 
-// API response types
+// ============================================================================
+// FILTER AND UI TYPES
+// ============================================================================
+
+export interface FilterOptions {
+  floor: number | 'all';
+  availability: AvailabilityStatus | 'all';
+  building: string | 'all';
+}
+
+export type SortOption = 'name' | 'occupancy' | 'temperature' | 'floor';
+export type SortOrder = 'asc' | 'desc';
+
+// ============================================================================
+// API TYPES
+// ============================================================================
+
 export interface ApiResponse<T> {
   data?: T;
   error?: string;
@@ -155,28 +173,40 @@ export interface PaginatedResponse<T> {
   hasMore: boolean;
 }
 
-// Configuration types
+// ============================================================================
+// CONFIGURATION TYPES
+// ============================================================================
+
 export interface RealtimeConfig {
   table: string;
   event: "*" | "INSERT" | "UPDATE" | "DELETE";
   schema?: string;
 }
 
-// Error types
+// ============================================================================
+// ERROR TYPES
+// ============================================================================
+
 export interface AppError {
   code: string;
   message: string;
   details?: unknown;
 }
 
-// Form types
+// ============================================================================
+// FORM TYPES
+// ============================================================================
+
 export interface ContactFormData {
   name: string;
   email: string;
   message: string;
 }
 
-// Constants
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
 export const USER_ROLES = ["employee", "facilities", "admin"] as const;
 export const BOOKING_STATUSES = ["upcoming", "active", "completed"] as const;
 export const ROOM_STATUSES = [
@@ -186,7 +216,10 @@ export const ROOM_STATUSES = [
   "unknown",
 ] as const;
 
-// Type guards
+// ============================================================================
+// TYPE GUARDS
+// ============================================================================
+
 export const isUserRole = (role: string): role is UserRole => {
   return USER_ROLES.includes(role as UserRole);
 };
@@ -199,7 +232,10 @@ export const isRoomStatus = (status: string): status is RoomStatus => {
   return ROOM_STATUSES.includes(status as RoomStatus);
 };
 
-// Utility types
+// ============================================================================
+// UTILITY TYPES
+// ============================================================================
+
 export type Nullable<T> = T | null;
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 export type RequiredFields<T, K extends keyof T> = T & Required<Pick<T, K>>;

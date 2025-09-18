@@ -63,9 +63,9 @@ export function useRooms(options: UseRoomsOptions = {}): UseRoomsReturn {
               ? {
                   ...room,
                   currentOccupancy: newReading.occupancy,
-                  currentTemperature: newReading.temperature,
-                  currentNoiseLevel: newReading.noise_level,
-                  currentAirQuality: newReading.air_quality,
+                  currentTemperature: newReading.temperature ?? undefined,
+                  currentNoiseLevel: newReading.noise_level ?? undefined,
+                  currentAirQuality: newReading.air_quality ?? undefined,
                   lastUpdated: newReading.timestamp,
                   status: determineRoomStatus(
                     newReading.occupancy,

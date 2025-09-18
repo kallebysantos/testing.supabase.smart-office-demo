@@ -41,7 +41,7 @@ export const BookingCard = memo<BookingCardProps>(function BookingCard({
     return {
       ...booking,
       title: sanitizeBookingTitle(booking.title),
-      attendee_count: Math.max(0, Math.floor(booking.attendee_count))
+      attendee_count: Math.max(0, Math.floor(booking.attendee_count || 0))
     }
   }, [booking])
 
@@ -149,9 +149,9 @@ export const BookingCard = memo<BookingCardProps>(function BookingCard({
               <Users className="h-4 w-4 mr-2 text-gray-500" aria-hidden="true" />
               <span>{validatedBooking.attendee_count} attendees</span>
             </div>
-            <div 
+            <div
               className="text-xs text-gray-500 truncate max-w-48"
-              title={validatedBooking.organizer_email}
+              title={validatedBooking.organizer_email || undefined}
             >
               {validatedBooking.organizer_email}
             </div>
@@ -187,7 +187,7 @@ const LiveSensorData = memo<LiveSensorDataProps>(function LiveSensorData({ booki
         label: 'Occupancy',
         value: getSensorValue(booking.currentOccupancy),
         color: 'text-blue-500',
-        status: getOccupancyStatus(booking.currentOccupancy, booking.attendee_count)
+        status: getOccupancyStatus(booking.currentOccupancy, booking.attendee_count || undefined)
       },
       {
         icon: Thermometer,

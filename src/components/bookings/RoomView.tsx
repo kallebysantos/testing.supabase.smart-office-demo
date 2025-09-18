@@ -23,6 +23,7 @@ export function RoomView({ bookings, rooms }: RoomViewProps) {
 
     bookings.forEach(booking => {
       const roomId = booking.room_id
+      if (!roomId) return // Skip if no room_id
       if (!grouped[roomId]) {
         grouped[roomId] = []
       }
@@ -41,15 +42,19 @@ export function RoomView({ bookings, rooms }: RoomViewProps) {
 
   // Get unique rooms from bookings
   const uniqueRooms = useMemo(() => {
-    const roomMap = new Map<string, { id: string; name: string; capacity?: number; floor?: number; building?: string; amenities?: string[] }>()
-    
+    const roomMap = new Map<string, { id: string; name: string; capacity?: number; floor?: number; building?: string; amenities?: string[] | null }>()
+
     bookings.forEach(booking => {
+      if (!booking.room_id) return // Skip if no room_id
       if (!roomMap.has(booking.room_id)) {
+        const foundRoom = rooms?.find(r => r.id === booking.room_id)
         roomMap.set(booking.room_id, {
           id: booking.room_id,
           name: booking.room.name,
-          // Add additional room details if available from rooms prop
-          ...(rooms?.find(r => r.id === booking.room_id) || {})
+          capacity: foundRoom?.capacity,
+          floor: foundRoom?.floor,
+          building: foundRoom?.building,
+          amenities: foundRoom?.amenities
         })
       }
     })

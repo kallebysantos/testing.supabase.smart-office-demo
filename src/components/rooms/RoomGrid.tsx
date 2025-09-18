@@ -10,12 +10,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Room,
   SensorReading,
-  RoomStatus,
+  RoomStatusData,
   FilterOptions,
   SortOption,
   SortOrder,
   AvailabilityStatus,
-} from "@/types/room";
+} from "@/types";
 import {
   Loader2,
   RefreshCw,
@@ -162,8 +162,8 @@ export default function RoomGrid({ initialRooms = [] }: RoomGridProps) {
   };
 
   // Create room statuses from rooms and sensor readings
-  const roomStatuses: RoomStatus[] = useMemo(() => {
-    return rooms.map((room) => {
+  const roomStatuses: RoomStatusData[] = useMemo(() => {
+    return rooms.map((room): RoomStatusData => {
       const latestReading = sensorReadings.find(
         (reading) => reading.room_id === room.id
       );

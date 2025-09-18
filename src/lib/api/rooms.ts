@@ -90,8 +90,9 @@ export class RoomsApi extends ApiClient {
       const sensorReadings = sensorResponse.data || []
 
       // Create a map of latest readings by room_id
-      const latestReadingsMap = new Map<RoomId, SensorReading>()
+      const latestReadingsMap = new Map<string, SensorReading>()
       sensorReadings.forEach(reading => {
+        if (!reading.room_id) return // Skip if no room_id
         if (!latestReadingsMap.has(reading.room_id)) {
           latestReadingsMap.set(reading.room_id, reading)
         }
@@ -103,9 +104,9 @@ export class RoomsApi extends ApiClient {
         return {
           ...room,
           currentOccupancy: latestReading?.occupancy,
-          currentTemperature: latestReading?.temperature,
-          currentNoiseLevel: latestReading?.noise_level,
-          currentAirQuality: latestReading?.air_quality,
+          currentTemperature: latestReading?.temperature ?? undefined,
+          currentNoiseLevel: latestReading?.noise_level ?? undefined,
+          currentAirQuality: latestReading?.air_quality ?? undefined,
           lastUpdated: latestReading?.timestamp,
           status: this.determineRoomStatus(latestReading?.occupancy, room.capacity)
         }

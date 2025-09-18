@@ -172,7 +172,7 @@ export function UserSwitcherDialog({ open, onOpenChange }: UserSwitcherDialogPro
                     </p>
                     
                     <div className="text-xs text-gray-500">
-                      Access to floors: {demoUser.floor_access.join(", ")}
+                      Access to floors: {demoUser.floor_access?.join(", ") || "All"}
                     </div>
                   </div>
                 </div>

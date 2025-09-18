@@ -83,7 +83,7 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
           .select("*")
           /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
           .in("room_id", roomsData.map((r: any) => r.id))
-          .order("last_updated", { ascending: false });
+          .order("timestamp", { ascending: false });
 
         if (sensorError) throw sensorError;
 
@@ -268,6 +268,7 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
             src="/images/fakefloorplan.png"
             alt="Office Floorplan"
             fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
             className="object-contain"
             priority
           />

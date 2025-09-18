@@ -11,13 +11,16 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Building2, Wrench, Mail, Lock, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react'
 
+import type { UserId } from '@/types'
+
 const demoUser = {
-  id: 'facilities-demo',
+  id: 'facilities-demo' as UserId,
   email: 'hermione.granger@company.com',
   full_name: 'Hermione Granger',
-  department: 'Facilities Management', 
+  department: 'Facilities Management',
   role: 'facilities' as const,
   floor_access: [1, 2, 3, 4],
+  created_at: new Date().toISOString(),
   description: 'Analytics, alerts, all bookings, full sensor data access'
 }
 

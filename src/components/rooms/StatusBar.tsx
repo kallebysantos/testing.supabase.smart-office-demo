@@ -10,10 +10,10 @@ import {
   AlertCircle,
   Circle
 } from 'lucide-react'
-import { RoomStatus } from '@/types/room'
+import { RoomStatusData } from '@/types'
 
 interface StatusBarProps {
-  roomStatuses: RoomStatus[]
+  roomStatuses: RoomStatusData[]
   lastUpdate: string | null
   isConnected: boolean
 }

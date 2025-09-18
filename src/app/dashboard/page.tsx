@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import NavigationMenu from "@/components/navigation/NavigationMenu";
+import type { SensorReading } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -85,20 +86,12 @@ export default function DashboardPage() {
 
       if (roomsError) throw roomsError;
 
-      // Get latest sensor readings per room using a more efficient query
-      const { data: sensorData, error: sensorError } = (await supabase.rpc(
-        "get_latest_sensor_readings"
-      )) as {
-        data: Array<{
-          room_id: string;
-          occupancy: number;
-          temperature: number;
-          noise_level: number;
-          air_quality: number;
-          reading_timestamp: string;
-        }> | null;
-        error: unknown;
-      };
+      // Get latest sensor readings
+      const { data: sensorData, error: sensorError } = await supabase
+        .from("sensor_readings")
+        .select("*")
+        .order("timestamp", { ascending: false })
+        .limit(100);
 
       if (sensorError) {
         console.warn("Error fetching sensor data:", sensorError);
@@ -127,31 +120,18 @@ export default function DashboardPage() {
         let noiseReadings = 0;
         let airQualityReadings = 0;
 
-        // Create map of latest readings (RPC already returns latest per room)
-        const latestReadings = new Map<
-          string,
-          {
-            room_id: string;
-            occupancy: number;
-            temperature: number;
-            noise_level: number;
-            air_quality: number;
-            reading_timestamp: string;
-          }
-        >();
+        // Create map of latest readings per room
+        const latestReadings = new Map<string, SensorReading>();
         if (sensorData && Array.isArray(sensorData)) {
-          sensorData.forEach(
-            (reading: {
-              room_id: string;
-              occupancy: number;
-              temperature: number;
-              noise_level: number;
-              air_quality: number;
-              reading_timestamp: string;
-            }) => {
+          // Get the latest reading for each room
+          sensorData.forEach((reading: SensorReading) => {
+            if (!reading.room_id) return; // Skip if no room_id
+            if (!latestReadings.has(reading.room_id) ||
+                (latestReadings.has(reading.room_id) &&
+                 new Date(reading.timestamp) > new Date(latestReadings.get(reading.room_id)!.timestamp))) {
               latestReadings.set(reading.room_id, reading);
             }
-          );
+          });
         }
 
         // Debug info (remove in production)
