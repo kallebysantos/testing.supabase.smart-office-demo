@@ -15,7 +15,7 @@
 -- ============================================================================
 
 -- Enable necessary extensions
-CREATE EXTENSION IF NOT EXISTS pgvector;
+CREATE EXTENSION IF NOT EXISTS vector;
 
 -- ============================================================================
 -- TABLE DEFINITIONS

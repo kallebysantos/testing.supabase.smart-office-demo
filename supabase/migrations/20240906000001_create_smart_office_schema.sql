@@ -2,7 +2,7 @@
 -- Migration: Create all tables for conference room utilization tracking
 
 -- Enable necessary extensions
-CREATE EXTENSION IF NOT EXISTS pgvector;
+CREATE EXTENSION IF NOT EXISTS vector;
 
 -- Conference Rooms
 CREATE TABLE rooms (

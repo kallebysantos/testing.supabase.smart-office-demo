@@ -65,3 +65,4 @@ logs
 
 # Supabase
 supabase/.temp
+supabase/.branches
