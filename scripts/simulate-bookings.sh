@@ -6,13 +6,28 @@
 
 set -e
 
+# Load environment variables from .env.local if present (or override via ENV_FILE)
+ENV_FILE="${ENV_FILE:-.env.local}"
+if [ -f "$ENV_FILE" ]; then
+  # Export all variables defined in the env file
+  set -a
+  # shellcheck disable=SC1090
+  . "$ENV_FILE"
+  set +a
+fi
+
 echo "🏛️ Starting room booking simulation..."
 echo "⏰ Simulating cron job that runs every 20 minutes"
 echo ""
 
-# Supabase project configuration
-SUPABASE_URL="https://nnipoczsqoylnrwidbgp.supabase.co"
-ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uaXBvY3pzcW95bG5yd2lkYmdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxODU0MDUsImV4cCI6MjA3Mjc2MTQwNX0.-AVWvor9auHAz3CI8RYPrFW3UPhUbBbHEAYWK7YdVQY"
+# Supabase project configuration (loaded from environment)
+# Allow SUPABASE_URL to fall back to NEXT_PUBLIC_SUPABASE_URL
+SUPABASE_URL="${SUPABASE_URL:-$NEXT_PUBLIC_SUPABASE_URL}"
+: "${SUPABASE_URL:?SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL is required (set in your shell or in $ENV_FILE)}"
+
+# For key prefer ANON_KEY, fallback to NEXT_PUBLIC_SUPABASE_ANON_KEY
+ANON_KEY="${ANON_KEY:-$NEXT_PUBLIC_SUPABASE_ANON_KEY}"
+: "${ANON_KEY:?ANON_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY is required (set in your shell or in $ENV_FILE)}"
 
 echo "🔑 Using deployed Edge Function at $SUPABASE_URL"
 echo ""
