@@ -58,10 +58,10 @@ function RoomImage({ room, statusColor }: RoomImageProps) {
       )}
 
       {/* Status Indicator */}
-      <div
-        className={`absolute top-3 right-3 w-4 h-4 rounded-full ${statusColor}`}
-        aria-label={`Room status: ${room.status}`}
-      />
+      <span className="absolute top-3 right-3 flex size-3.5" aria-label={`Room status: ${room.status}`}>
+        <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${statusColor} opacity-75`}></span>
+        <span className={`relative inline-flex size-3.5 rounded-full ${statusColor}`}></span>
+      </span>
     </div>
   )
 }
