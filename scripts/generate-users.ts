@@ -17,7 +17,7 @@ config({ path: ".env.local" });
 // Configuration
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const TOTAL_USERS = 125; // Start with just 5 for testing
+const TOTAL_USERS = 10; // Start with just 10 for testing
 
 console.log("🔧 Environment check:");
 console.log(
