@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { Users, Thermometer, Volume2, Wind } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Room {
   id: string;
@@ -282,16 +283,14 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
             return (
               <Tooltip key={room.id}>
                 <TooltipTrigger asChild>
-                  <div
-                    className={`absolute w-4 h-4 rounded-full cursor-pointer transition-all duration-300 hover:scale-150 ${getStatusColor(status)} shadow-lg z-10 ${
-                      isRecentlyUpdated ? "ring-4 ring-yellow-400 ring-opacity-75 animate-ping" : ""
-                    }`}
-                    style={{
+                  <div className="absolute flex h-4 w-4" style={{
                       left: `${position.x}%`,
                       top: `${position.y}%`,
                       transform: "translate(-50%, -50%)",
-                    }}
-                  />
+                    }}>
+                    <span className={cn("absolute inline-flex h-full w-full rounded-full opacity-75", getStatusColor(status), isRecentlyUpdated ? "animate-ping" : "")}></span>
+                    <span className={cn("relative inline-flex rounded-full h-4 w-4", getStatusColor(status))}></span>
+                  </div>
                 </TooltipTrigger>
                 <TooltipContent 
                   side="top" 
