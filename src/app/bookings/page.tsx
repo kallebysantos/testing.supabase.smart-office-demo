@@ -36,7 +36,7 @@ export default function BookingsPage() {
         setRooms(response.data)
       }
     }
-    
+
     if (viewType === 'room') {
       fetchRooms()
     }
@@ -65,23 +65,23 @@ export default function BookingsPage() {
     switch (viewType) {
       case 'list':
         return (
-          <BookingsList 
+          <BookingsList
             bookings={filteredBookings}
             activeFilter={activeFilter}
           />
         )
-      
+
       case 'room':
         return <RoomView bookings={filteredBookings} rooms={rooms} />
-      
+
       case 'day':
       case 'week':
       case 'month':
         return <CalendarView bookings={filteredBookings} viewType={viewType} />
-      
+
       default:
         return (
-          <BookingsList 
+          <BookingsList
             bookings={filteredBookings}
             activeFilter={activeFilter}
           />
@@ -92,23 +92,23 @@ export default function BookingsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavigationMenu />
-      
+
       <main className="md:ml-64">
         <div className="px-4 py-8 md:px-8">
           <ErrorBoundary>
             <BookingsHeader />
-            
+
             {/* Filter Section */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-2">Filter by Status</h3>
-                <BookingsFilters 
+                <BookingsFilters
                   activeFilter={activeFilter}
                   onFilterChange={setActiveFilter}
                   statusCounts={statusCounts}
                 />
               </div>
-              
+
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-2">View Type</h3>
                 <ViewTypeFilters
@@ -117,7 +117,7 @@ export default function BookingsPage() {
                 />
               </div>
             </div>
-            
+
             {renderContent()}
           </ErrorBoundary>
         </div>

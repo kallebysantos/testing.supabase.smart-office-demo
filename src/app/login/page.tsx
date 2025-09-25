@@ -166,7 +166,7 @@ export default function LoginPage() {
 
             {showDemoAccounts && (
               <div className="space-y-3 pt-2">
-                <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="flex flex-wrap gap-4 items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                   <div className="flex items-center space-x-3">
                     <div className="p-2 rounded-full bg-orange-100">
                       <Wrench className="h-5 w-5 text-orange-600" />
@@ -180,7 +180,7 @@ export default function LoginPage() {
                       >
                         Facilities Manager
                       </Badge>
-                      <p className="text-xs text-gray-400 mt-1 max-w-48">
+                      <p className="text-xs text-gray-400 mt-1">
                         {demoUser.description}
                       </p>
                     </div>
@@ -189,7 +189,7 @@ export default function LoginPage() {
                     size="sm"
                     onClick={handleDemoLogin}
                     disabled={isLoggingIn}
-                    className="shrink-0"
+                    className="w-full"
                   >
                     {isLoggingIn ? 'Signing In...' : 'Enter Dashboard'}
                   </Button>
