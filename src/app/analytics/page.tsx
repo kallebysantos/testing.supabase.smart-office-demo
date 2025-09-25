@@ -390,7 +390,7 @@ export default function AnalyticsPage() {
               </div>
 
               {/* Iceberg Buckets Toggle */}
-              <div className="flex flex-col  md:flex-row md:items-center gap-4">
+              <div className="flex flex-col lg:flex-row md:items-center gap-4">
                 <div className="flex items-center space-x-3">
                   <DatabaseIcon className="h-5 w-5 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">

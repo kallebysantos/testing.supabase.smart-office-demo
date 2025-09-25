@@ -19,20 +19,20 @@ export function AlertsHeader({ statusCounts, onTriggerDetection }: AlertsHeaderP
 
   return (
     <div className="mb-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between mb-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Facilities Alert System</h1>
           <p className="text-gray-600 mt-2">
             Real-time capacity violation detection and automated service ticket management
           </p>
         </div>
-        
-        <div className="flex items-center space-x-4">
+
+        <div className="flex flex-col lg:flex-row md:items-center gap-4">
           <div className="flex items-center space-x-2">
             <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
             <span className="text-sm text-gray-600">Live Queue Processing</span>
           </div>
-          
+
           <Button
             onClick={onTriggerDetection}
             variant="outline"
@@ -45,26 +45,26 @@ export function AlertsHeader({ statusCounts, onTriggerDetection }: AlertsHeaderP
       </div>
 
       {/* Status Overview */}
-      <div className="bg-white rounded-lg border p-4">
-        <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row gap-4 items-start justify-between bg-white rounded-lg border p-4">
+        <div className='flex flex-col justify-between gap-2'>
           <div className="flex items-center space-x-2">
             <AlertTriangle className="h-5 w-5 text-orange-600" />
             <span className="font-medium text-gray-900">Queue Status</span>
           </div>
-          
-          <div className="flex items-center space-x-6">
-            <StatusBadge label="Queued" count={statusCounts.queued || 0} variant="default" />
-            <StatusBadge label="Processing" count={statusCounts.processing || 0} variant="secondary" />
-            <StatusBadge label="Assigned" count={statusCounts.assigned || 0} variant="destructive" />
-            <StatusBadge label="Resolved" count={statusCounts.resolved || 0} variant="outline" />
-          </div>
+
+          {activeTickets > 0 && (
+            <div className="text-sm text-gray-600">
+              {activeTickets} active ticket{activeTickets !== 1 ? 's' : ''} in the system
+            </div>
+          )}
         </div>
-        
-        {activeTickets > 0 && (
-          <div className="mt-2 text-sm text-gray-600">
-            {activeTickets} active ticket{activeTickets !== 1 ? 's' : ''} in the system
-          </div>
-        )}
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 justify-items-end gap-y-3 gap-x-6">
+          <StatusBadge label="Queued" count={statusCounts.queued || 0} variant="default" />
+          <StatusBadge label="Processing" count={statusCounts.processing || 0} variant="secondary" />
+          <StatusBadge label="Assigned" count={statusCounts.assigned || 0} variant="destructive" />
+          <StatusBadge label="Resolved" count={statusCounts.resolved || 0} variant="outline" />
+        </div>
       </div>
     </div>
   )
