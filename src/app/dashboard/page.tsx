@@ -668,7 +668,7 @@ export default function DashboardPage() {
                         </div>
                         <Progress
                           value={Math.min(room.utilization_percentage, 100)}
-                          className="mt-2 h-2"
+                          className="mt-2 h-2 bg-red-600"
                         />
                       </div>
                     ))
