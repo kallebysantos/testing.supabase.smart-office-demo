@@ -22,9 +22,9 @@ export function RoomCard({ room }: RoomCardProps) {
   const statusVariant = getRoomStatusVariant(room.status)
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow shadow-sm">
+    <Card className="pt-0 overflow-hidden hover:shadow-lg transition-shadow shadow-sm">
       <RoomImage room={room} statusColor={statusColor} />
-      <CardContent className="p-4">
+      <CardContent className="px-4 py-2">
         <RoomTitle name={room.name} />
         <RoomMetrics room={room} />
         <RoomStatus status={room.status} variant={statusVariant} lastUpdated={room.lastUpdated} />
@@ -56,9 +56,9 @@ function RoomImage({ room, statusColor }: RoomImageProps) {
           <Building2 className="h-12 w-12 text-gray-400" aria-hidden="true" />
         </div>
       )}
-      
+
       {/* Status Indicator */}
-      <div 
+      <div
         className={`absolute top-3 right-3 w-4 h-4 rounded-full ${statusColor}`}
         aria-label={`Room status: ${room.status}`}
       />
@@ -83,7 +83,7 @@ function RoomMetrics({ room }: RoomMetricsProps) {
     {
       icon: Users,
       label: 'Occupancy',
-      value: room.currentOccupancy !== undefined 
+      value: room.currentOccupancy !== undefined
         ? `${room.currentOccupancy}/${room.capacity}`
         : 'No data',
       available: room.currentOccupancy !== undefined
@@ -91,7 +91,7 @@ function RoomMetrics({ room }: RoomMetricsProps) {
     {
       icon: Thermometer,
       label: 'Temperature',
-      value: room.currentTemperature !== undefined 
+      value: room.currentTemperature !== undefined
         ? formatTemperature(room.currentTemperature)
         : 'No data',
       available: room.currentTemperature !== undefined
@@ -99,7 +99,7 @@ function RoomMetrics({ room }: RoomMetricsProps) {
     {
       icon: Volume2,
       label: 'Noise',
-      value: room.currentNoiseLevel !== undefined 
+      value: room.currentNoiseLevel !== undefined
         ? `${room.currentNoiseLevel} dB`
         : 'No data',
       available: room.currentNoiseLevel !== undefined
@@ -107,7 +107,7 @@ function RoomMetrics({ room }: RoomMetricsProps) {
     {
       icon: Wind,
       label: 'Air Quality',
-      value: room.currentAirQuality !== undefined 
+      value: room.currentAirQuality !== undefined
         ? `${room.currentAirQuality}/100`
         : 'No data',
       available: room.currentAirQuality !== undefined
@@ -166,7 +166,7 @@ function RoomStatus({ status, variant, lastUpdated }: RoomStatusProps) {
       <Badge variant={variant} className="capitalize mb-2">
         {displayStatus}
       </Badge>
-      
+
       {lastUpdated && (
         <p className="text-xs text-gray-400">
           Last updated: {formatTime(lastUpdated)}
