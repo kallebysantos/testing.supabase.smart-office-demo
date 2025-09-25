@@ -6,15 +6,15 @@ For more information, please refer to the [FEATURES.md](FEATURES.md) file.
 
 ## 📋 Prerequisites
 
-- **Node.js 18+** 
+- **Node.js 18+**
 - **npm/yarn/pnpm**
 - **Supabase account** with project setup
 - **Environment variables** (see configuration below)
 
-
 ## 🚀 Quick Start
 
 1. **Clone and Install**
+
    ```bash
    git clone <repository-url>
    cd smart-office-dashboard
@@ -22,17 +22,20 @@ For more information, please refer to the [FEATURES.md](FEATURES.md) file.
    ```
 
 2. **Environment Configuration**
+
    ```bash
    cp .env.example .env.local
    # Configure your Supabase project specific variables
    ```
 
 3. **Start Supabase local dev environment**
+
    ```bash
    npx supabase start
    ```
 
 4. **Start Development**
+
    ```bash
    npm run dev
    ```
@@ -40,66 +43,39 @@ For more information, please refer to the [FEATURES.md](FEATURES.md) file.
 5. **Access Application**
    Open [http://localhost:3000](http://localhost:3000)
 
-## 📱 Application Architecture
+## Generate demo data
 
-### Page Structure
-```
-📁 src/app/
-├── 📄 page.tsx           # Landing/redirect page
-├── 🔐 login/             # Authentication
-├── 📊 dashboard/         # Executive metrics overview  
-├── 🏢 rooms/             # Live room monitoring (main page)
-├── 📅 bookings/          # Booking management
-├── 📈 analytics/         # Historical analysis & Analytics Buckets
-├── 🚨 alerts/            # Real-time facilities management system
-└── 👤 profile/           # User profile settings
-```
+1. Run the following commands, either in parallel or sequentially:
 
-### Component Architecture
-```
-📁 src/components/
-├── 🎨 ui/                # shadcn/ui base components
-├── 🧭 navigation/        # Navigation menu with role-based access
-├── 🏢 dashboard/         # Dashboard-specific widgets
-├── 📊 charts/            # Custom chart components
-└── 🔧 common/            # Shared utility components
-```
+   ```bash
+   npm run generate:rooms
+   npm run generate:users
+   npm run generate:tickets
+   npm run generate:images
+   ```
 
-### Data Layer
-```
-📁 src/lib/
-├── 🔌 supabase/          # Database client and configuration
-├── 🎯 types/             # TypeScript definitions
-└── 🛠️ utils/             # Helper functions and utilities
-```
+2. Deploy the functions:
 
-## 🏗️ Database Schema
+   ```bash
+   npm run functions:deploy-all
+   ```
 
-### Core Tables
-- **`rooms`** - Conference room details (57 rooms across multiple floors)
-- **`sensor_readings`** - IoT sensor data (occupancy, temperature, noise, air quality)
-- **`room_bookings`** - Calendar integration and booking data
-- **`user_profiles`** - User authentication and role management
-- **`service_tickets`** - Automated facilities management tickets with ServiceNow integration
-- **`facility_alerts`** - Legacy system notifications and maintenance alerts
+3. Load some initial sensor data simulator:
 
-### Real-time Features
-- **Live sensor updates** via Supabase real-time subscriptions
-- **Booking status changes** with immediate UI updates
-- **Automated capacity violation detection** with service ticket creation
-- **Real-time ticket queue processing** and assignment workflows
-- **ServiceNow integration** for enterprise facilities management
-- **Environmental monitoring** with threshold notifications
+   ```bash
+   npm run simulate:sensors
+   # Run it every time you want to simulate new sensor data for the real-time floorplan viewer
+   ```
 
-### Analytics Buckets Integration
-- **Large-scale historical analysis** using Apache Iceberg
-- **Time travel queries** for data versioning
-- **Schema evolution support** for changing data requirements
-- **Open table format** for data portability
+4. Load some initial booking data simulator:
+   ```bash
+   npm run simulate:bookings
+   ```
 
 ## 🚀 Deployment
 
 ### Vercel Deployment (Recommended)
+
 ```bash
 # Build and deploy
 npm run build
@@ -108,12 +84,14 @@ npm run build
 ```
 
 ### Manual Production Deployment
+
 ```bash
 npm run build
 npm run start
 ```
 
 ### Environment Variables for Production
+
 Ensure all environment variables are configured in your deployment platform with production Supabase credentials.
 
 ## 🤝 Contributing
