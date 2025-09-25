@@ -28,13 +28,13 @@ For more information, please refer to the [FEATURES.md](FEATURES.md) file.
    # Configure your Supabase project specific variables
    ```
 
-3. **Start Supabase local dev environment**
+3. **Start a local Supabase dev environment**
 
    ```bash
    npx supabase start
    ```
 
-4. **Start Development**
+4. **Start the Next.js dev server**
 
    ```bash
    npm run dev
@@ -113,4 +113,4 @@ This application is built for the fictional law firm "Dewey, Cheatham & Howe," s
 ---
 
 **Built with ❤️ for enterprise IoT demonstrations**
-**Showcasing: Next.js 14, Supabase, Analytics Buckets, Real-time Data Processing**
+**Showcasing: Next.js 15, Supabase, Analytics Buckets, Real-time Data Processing**
