@@ -15,10 +15,10 @@ interface BookingsFiltersProps {
   statusCounts: Record<BookingStatus, number>
 }
 
-export function BookingsFilters({ 
-  activeFilter, 
-  onFilterChange, 
-  statusCounts 
+export function BookingsFilters({
+  activeFilter,
+  onFilterChange,
+  statusCounts
 }: BookingsFiltersProps) {
   const filters = [
     {
@@ -30,7 +30,7 @@ export function BookingsFilters({
     {
       status: 'upcoming' as const,
       icon: Clock,
-      label: 'Upcoming', 
+      label: 'Upcoming',
       count: statusCounts.upcoming || 0
     },
     {
@@ -42,7 +42,7 @@ export function BookingsFilters({
   ]
 
   return (
-    <div className="flex items-center space-x-2 mb-6">
+    <div className="flex items-center space-x-2">
       {filters.map(({ status, icon: Icon, label, count }) => (
         <Button
           key={status}
