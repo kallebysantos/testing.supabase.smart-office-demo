@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator'
 import { Building2, Wrench, Mail, Lock, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react'
 
 import type { UserId } from '@/types'
+import { useAuth } from '@/contexts/AuthContext'
 
 const demoUser = {
   id: 'facilities-demo' as UserId,
@@ -25,6 +26,7 @@ const demoUser = {
 }
 
 export default function LoginPage() {
+  const { switchUser } = useAuth()
   const router = useRouter()
   const [showDemoAccounts, setShowDemoAccounts] = useState(false)
   const [isLoggingIn, setIsLoggingIn] = useState(false)
@@ -34,12 +36,11 @@ export default function LoginPage() {
 
   const handleDemoLogin = async () => {
     setIsLoggingIn(true)
-    
+
     // Simulate login process
     setTimeout(() => {
-      // Store the demo user in localStorage for the demo
-      localStorage.setItem('demo-user', JSON.stringify(demoUser))
-      
+      switchUser(demoUser);
+
       // Redirect to rooms
       router.push('/dashboard')
     }, 1000)
@@ -173,8 +174,8 @@ export default function LoginPage() {
                     <div>
                       <p className="font-medium text-sm">{demoUser.full_name}</p>
                       <p className="text-xs text-gray-500">{demoUser.email}</p>
-                      <Badge 
-                        variant="outline" 
+                      <Badge
+                        variant="outline"
                         className="mt-1 text-xs bg-orange-100 text-orange-800 border-orange-200"
                       >
                         Facilities Manager
