@@ -127,8 +127,8 @@ export default function DashboardPage() {
           sensorData.forEach((reading: SensorReading) => {
             if (!reading.room_id) return; // Skip if no room_id
             if (!latestReadings.has(reading.room_id) ||
-                (latestReadings.has(reading.room_id) &&
-                 new Date(reading.timestamp) > new Date(latestReadings.get(reading.room_id)!.timestamp))) {
+              (latestReadings.has(reading.room_id) &&
+                new Date(reading.timestamp) > new Date(latestReadings.get(reading.room_id)!.timestamp))) {
               latestReadings.set(reading.room_id, reading);
             }
           });
@@ -373,7 +373,7 @@ export default function DashboardPage() {
         <div className="px-4 py-8 md:px-8">
           {/* Header */}
           <div className="mb-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between mb-4">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">
                   Executive Dashboard
@@ -382,26 +382,29 @@ export default function DashboardPage() {
                   Real-time conference room utilization across all buildings
                 </p>
               </div>
-              <div className="flex items-center space-x-4">
+
+              <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                 <div className="flex items-center space-x-2">
                   <div
-                    className={`h-2 w-2 rounded-full ${
-                      realtimeStatus === "connected"
-                        ? "bg-green-500 animate-pulse"
-                        : realtimeStatus === "connecting"
+                    className={`h-2 w-2 rounded-full ${realtimeStatus === "connected"
+                      ? "bg-green-500 animate-pulse"
+                      : realtimeStatus === "connecting"
                         ? "bg-yellow-500 animate-pulse"
                         : "bg-red-500"
-                    }`}
+                      }`}
                   ></div>
                   <span className="text-sm text-gray-600">
                     {realtimeStatus === "connected"
                       ? "Live Data"
                       : realtimeStatus === "connecting"
-                      ? "Connecting..."
-                      : "Offline (30s refresh)"}
+                        ? "Connecting..."
+                        : "Offline (30s refresh)"}
+
+
                     {lastUpdated && (
-                      <span className="ml-2 text-xs text-gray-400">
-                        • Updated {getTimeAgo(lastUpdated.toISOString())}
+                      <span className="ml-2 text-xs  text-gray-400">
+                        •
+                        Updated {getTimeAgo(lastUpdated.toISOString())}
                       </span>
                     )}
                   </span>
@@ -699,10 +702,10 @@ export default function DashboardPage() {
                         Floor {floor}
                       </Badge>
                     )) || (
-                      <span className="text-sm text-gray-500">
-                        No floor access configured
-                      </span>
-                    )}
+                        <span className="text-sm text-gray-500">
+                          No floor access configured
+                        </span>
+                      )}
                   </div>
                 </div>
 
