@@ -42,13 +42,13 @@ export function BookingsFilters({
   ]
 
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex flex-wrap items-center gap-2">
       {filters.map(({ status, icon: Icon, label, count }) => (
         <Button
           key={status}
           variant={activeFilter === status ? 'default' : 'outline'}
           onClick={() => onFilterChange(status)}
-          className="flex items-center space-x-2"
+          className="w-full md:w-auto flex items-center space-x-2"
         >
           <Icon className="h-4 w-4" />
           <span>{label}</span>
