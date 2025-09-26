@@ -56,6 +56,11 @@ interface HighUtilizationRoom {
   temperature: number | null;
 }
 
+interface BuildingDetails {
+  building: string;
+  floors: number[];
+}
+
 export default function DashboardPage() {
   const { user, userProfile, loading } = useAuth();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
@@ -68,9 +73,26 @@ export default function DashboardPage() {
     "connecting" | "connected" | "disconnected"
   >("connecting");
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [selectedBuilding, setSelectedBuilding] = useState("2");
-  const [selectedFloor, setSelectedFloor] = useState("12");
 
+  const [buildings, setBuildings] = useState<BuildingDetails[]>([]);
+  const [selectedBuilding, setSelectedBuilding] = useState<string>();
+  const [selectedFloor, setSelectedFloor] = useState<number>();
+
+  const fetchBuildingsData = useCallback(async () => {
+    const { data } = await supabase
+      .from("building_details")
+      .select("building, floors");
+
+    const buildingsData = data as BuildingDetails[];
+    setBuildings(buildingsData);
+
+    const defaultBuilding = buildingsData?.at(0);
+
+    if (defaultBuilding) {
+      setSelectedBuilding(defaultBuilding.building);
+      setSelectedFloor(defaultBuilding.floors.at(0));
+    }
+  }, [])
 
   // Fetch real-time metrics from Supabase
   const fetchDashboardData = useCallback(async (showLoading = false) => {
@@ -85,6 +107,7 @@ export default function DashboardPage() {
         .select("id, name, capacity");
 
       if (roomsError) throw roomsError;
+
 
       // Get latest sensor readings
       const { data: sensorData, error: sensorError } = await supabase
@@ -353,6 +376,10 @@ export default function DashboardPage() {
     };
   }, [fetchDashboardData]);
 
+  useEffect(() => {
+    fetchBuildingsData();
+  }, [fetchBuildingsData])
+
   if (loading || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -448,13 +475,13 @@ export default function DashboardPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {Array.from({ length: 2 }, (_, i) => i + 1).map(
-                        (building) => (
+                      {buildings.map(
+                        ({ building }) => (
                           <SelectItem
                             key={building}
                             value={building.toString()}
                           >
-                            Building {building}
+                            {building}
                           </SelectItem>
                         )
                       )}
@@ -462,14 +489,14 @@ export default function DashboardPage() {
                   </Select>
                   <span className="text-gray-500">-</span>
                   <Select
-                    value={selectedFloor}
-                    onValueChange={setSelectedFloor}
+                    value={selectedFloor?.toString()}
+                    onValueChange={(v) => setSelectedFloor(Number.parseInt(v))}
                   >
                     <SelectTrigger className="w-32">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {Array.from({ length: 12 }, (_, i) => i + 1).map(
+                      {buildings.find(b => b.building === selectedBuilding)?.floors.map(
                         (floor) => (
                           <SelectItem key={floor} value={floor.toString()}>
                             Floor {floor}
