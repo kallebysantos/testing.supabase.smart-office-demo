@@ -6,10 +6,23 @@ SELECT cron.schedule(
   'capacity-violation-detector',
   '*/3 * * * *', -- Every 3 minutes
   $$
+  WITH secret as (
+      select decrypted_secret AS supabase_anon_key
+      from vault.decrypted_secrets
+      where name = 'supabase_anon_key'
+  ),
+  settings AS (
+      select decrypted_secret AS supabase_url
+      from vault.decrypted_secrets
+      where name = 'supabase_url'
+  )
   SELECT net.http_post(
-    url := 'https://nnipoczsqoylnrwidbgp.supabase.co/functions/v1/capacity-violation-detector',
-    headers := '{"Authorization": "Bearer YOUR_ANON_KEY", "Content-Type": "application/json"}'::jsonb,
-    body := '{}'::jsonb
+      url := (select supabase_url from settings) || '/functions/v1/' || 'capacity-violation-detector',
+      headers := jsonb_build_object(
+          'Authorization', 'Bearer ' || (select supabase_anon_key from secret),
+          'Content-Type', 'application/json'
+      ),
+      body := '{}'::jsonb
   );
   $$
 );
@@ -20,10 +33,23 @@ SELECT cron.schedule(
   'sensor-data-simulator',
   '* * * * *', -- Every minute
   $$
+  WITH secret as (
+      select decrypted_secret AS supabase_anon_key
+      from vault.decrypted_secrets
+      where name = 'supabase_anon_key'
+  ),
+  settings AS (
+      select decrypted_secret AS supabase_url
+      from vault.decrypted_secrets
+      where name = 'supabase_url'
+  )
   SELECT net.http_post(
-    url := 'https://nnipoczsqoylnrwidbgp.supabase.co/functions/v1/sensor-data-simulator',
-    headers := '{"Authorization": "Bearer YOUR_ANON_KEY", "Content-Type": "application/json"}'::jsonb,
-    body := '{}'::jsonb
+      url := (select supabase_url from settings) || '/functions/v1/' || 'sensor-data-simulator',
+      headers := jsonb_build_object(
+          'Authorization', 'Bearer ' || (select supabase_anon_key from secret),
+          'Content-Type', 'application/json'
+      ),
+      body := '{}'::jsonb
   );
   $$
 );
@@ -34,10 +60,23 @@ SELECT cron.schedule(
   'room-booking-simulator',
   '*/90 * * * *', -- Every 90 minutes
   $$
+  WITH secret as (
+      select decrypted_secret AS supabase_anon_key
+      from vault.decrypted_secrets
+      where name = 'supabase_anon_key'
+  ),
+  settings AS (
+      select decrypted_secret AS supabase_url
+      from vault.decrypted_secrets
+      where name = 'supabase_url'
+  )
   SELECT net.http_post(
-    url := 'https://nnipoczsqoylnrwidbgp.supabase.co/functions/v1/room-booking-simulator',
-    headers := '{"Authorization": "Bearer YOUR_ANON_KEY", "Content-Type": "application/json"}'::jsonb,
-    body := '{}'::jsonb
+      url := (select supabase_url from settings) || '/functions/v1/' || 'room-booking-simulator',
+      headers := jsonb_build_object(
+          'Authorization', 'Bearer ' || (select supabase_anon_key from secret),
+          'Content-Type', 'application/json'
+      ),
+      body := '{}'::jsonb
   );
   $$
 );
