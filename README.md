@@ -16,7 +16,7 @@ For more information, please refer to the [FEATURES.md](FEATURES.md) file.
 1. **Clone and Install**
 
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:supabase/smart-office-demo.git
    cd smart-office-dashboard
    npm install
    ```
@@ -24,8 +24,11 @@ For more information, please refer to the [FEATURES.md](FEATURES.md) file.
 2. **Environment Configuration**
 
    ```bash
-   cp .env.example .env.local
    # Configure your Supabase project specific variables
+   cp .env.example .env.local
+
+   # add an .env file, add an OPENAI_API_KEY
+   touch supabase/functions/.env
    ```
 
 3. **Start a local Supabase dev environment**
