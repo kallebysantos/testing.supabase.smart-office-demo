@@ -1,6 +1,6 @@
 import { EdgeWorker } from "@pgflow/edge-worker";
-import HelloWorldFlow from "./helloWorld.flow.ts";
+import GreetUserFlow from "./greetUser.flow.ts";
 
-EdgeWorker.start(HelloWorldFlow, {
+EdgeWorker.start(GreetUserFlow, {
   maxPollSeconds: 5,
 });
