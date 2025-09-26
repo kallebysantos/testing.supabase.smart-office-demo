@@ -49,7 +49,7 @@ const ROOM_POSITIONS = [
   { name: "Conference Room 4", x: 69.0, y: 62.1 },  // 1300/1600 * 100, 740/800 * 100
 ];
 
-export const FloorplanViewer = memo(function ({ buildingDetails, className = "" }: FloorplanViewerProps) {
+export function FloorplanViewer({ buildingDetails, className = "" }: FloorplanViewerProps) {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [sensorData, setSensorData] = useState<Map<string, SensorReading>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -378,4 +378,4 @@ export const FloorplanViewer = memo(function ({ buildingDetails, className = "" 
       </div>
     </TooltipProvider>
   );
-});
+};
