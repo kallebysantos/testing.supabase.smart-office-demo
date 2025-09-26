@@ -11,9 +11,9 @@
     "generate:users": "tsx scripts/generate-users.ts",
     "generate:images": "tsx scripts/generate-room-images.ts",
     "generate:tickets": "tsx scripts/generate-service-tickets.ts",
-    "functions:deploy": "supabase functions deploy sensor-data-simulator",
-    "functions:deploy-booking": "supabase functions deploy room-booking-simulator",
-    "functions:deploy-all": "supabase functions deploy sensor-data-simulator && supabase functions deploy room-booking-simulator",
+    "functions:serve": "supabase functions serve sensor-data-simulator",
+    "functions:serve-booking": "supabase functions serve room-booking-simulator",
+    "functions:serve-all": "supabase functions serve sensor-data-simulator && supabase functions serve room-booking-simulator",
     "simulate:bookings": "./scripts/simulate-bookings.sh",
     "simulate:sensors": "./scripts/simulate-sensors.sh",
     "demo:start-sensors": "curl -X POST \"http://localhost:54321/functions/v1/sensor-data-simulator\" -H \"Authorization: Bearer $(supabase status | grep 'anon key' | awk '{print $3}')\" -H \"Content-Type: application/json\" -d '{}'"
