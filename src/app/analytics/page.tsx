@@ -153,7 +153,7 @@ export default function AnalyticsPage() {
           const avgOccupancy =
             roomSensors.length > 0
               ? roomSensors.reduce((sum, s) => sum + s.occupancy, 0) /
-                roomSensors.length
+              roomSensors.length
               : 0;
 
           const avgUtilization =
@@ -165,19 +165,19 @@ export default function AnalyticsPage() {
           const avgTemperature =
             roomSensors.length > 0
               ? roomSensors.reduce((sum, s) => sum + (s.temperature ?? 72), 0) /
-                roomSensors.length
+              roomSensors.length
               : 72;
 
           const avgAirQuality =
             roomSensors.length > 0
               ? roomSensors.reduce((sum, s) => sum + (s.air_quality ?? 85), 0) /
-                roomSensors.length
+              roomSensors.length
               : 85;
 
           const avgNoiseLevel =
             roomSensors.length > 0
               ? roomSensors.reduce((sum, s) => sum + (s.noise_level ?? 45), 0) /
-                roomSensors.length
+              roomSensors.length
               : 45;
 
           // Determine utilization trend (simplified)
@@ -185,8 +185,8 @@ export default function AnalyticsPage() {
             avgUtilization > 70
               ? "up"
               : avgUtilization < 30
-              ? "down"
-              : "stable";
+                ? "down"
+                : "stable";
 
           return {
             room_name: room.name,
@@ -217,12 +217,12 @@ export default function AnalyticsPage() {
         const avgUtilization =
           dayData.length > 0
             ? dayData.reduce((sum, s) => {
-                const room = typedRoomsData?.find((r) => r.id === s.room_id);
-                return (
-                  sum +
-                  (room?.capacity ? (s.occupancy / room.capacity) * 100 : 0)
-                );
-              }, 0) / dayData.length
+              const room = typedRoomsData?.find((r) => r.id === s.room_id);
+              return (
+                sum +
+                (room?.capacity ? (s.occupancy / room.capacity) * 100 : 0)
+              );
+            }, 0) / dayData.length
             : Math.random() * 60 + 20; // Mock data for demo
 
         timeSeriesData.push({
@@ -238,24 +238,24 @@ export default function AnalyticsPage() {
           avg_temperature:
             dayData.length > 0
               ? Math.round(
-                  (dayData.reduce((sum, s) => sum + (s.temperature ?? 72), 0) /
-                    dayData.length) *
-                    10
-                ) / 10
+                (dayData.reduce((sum, s) => sum + (s.temperature ?? 72), 0) /
+                  dayData.length) *
+                10
+              ) / 10
               : 72 + (Math.random() - 0.5) * 4,
           avg_air_quality:
             dayData.length > 0
               ? Math.round(
-                  dayData.reduce((sum, s) => sum + (s.air_quality ?? 85), 0) /
-                    dayData.length
-                )
+                dayData.reduce((sum, s) => sum + (s.air_quality ?? 85), 0) /
+                dayData.length
+              )
               : 80 + Math.round(Math.random() * 15),
           avg_noise:
             dayData.length > 0
               ? Math.round(
-                  dayData.reduce((sum, s) => sum + (s.noise_level ?? 45), 0) /
-                    dayData.length
-                )
+                dayData.reduce((sum, s) => sum + (s.noise_level ?? 45), 0) /
+                dayData.length
+              )
               : 40 + Math.round(Math.random() * 20),
           bookings: dayBookings.length,
         });
@@ -274,7 +274,7 @@ export default function AnalyticsPage() {
         const avgOccupancy =
           hourData.length > 0
             ? hourData.reduce((sum, s) => sum + s.occupancy, 0) /
-              hourData.length
+            hourData.length
             : Math.random() * 15 + 5;
 
         const hourBookings =
@@ -319,7 +319,7 @@ export default function AnalyticsPage() {
         totalBookings: typedBookingsData?.length || 0,
         avgUtilization: Math.round(
           roomUtilization.reduce((sum, r) => sum + r.avg_utilization, 0) /
-            (roomUtilization.length || 1)
+          (roomUtilization.length || 1)
         ),
         criticalIssues: roomUtilization.filter(
           (r) => r.capacity_violations > 5 || r.avg_air_quality < 70
@@ -372,7 +372,7 @@ export default function AnalyticsPage() {
         <div className="px-4 py-8 md:px-8">
           {/* Header with Iceberg Toggle */}
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between mb-4">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">
                   Analytics Dashboard
@@ -390,10 +390,10 @@ export default function AnalyticsPage() {
               </div>
 
               {/* Iceberg Buckets Toggle */}
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-col lg:flex-row md:items-center gap-4">
                 <div className="flex items-center space-x-3">
-                  <DatabaseIcon className="h-5 w-5 text-gray-600" />
-                  <span className="text-sm text-gray-600">
+                  <DatabaseIcon className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
                     Query time:{" "}
                     <span className="font-medium">{queryTime}ms</span>
                   </span>
@@ -405,9 +405,8 @@ export default function AnalyticsPage() {
                   className="flex items-center space-x-2"
                 >
                   <Zap
-                    className={`h-4 w-4 ${
-                      icebergEnabled ? "text-white" : "text-blue-600"
-                    }`}
+                    className={`h-4 w-4 ${icebergEnabled ? "text-white" : "text-blue-600"
+                      }`}
                   />
                   <span>
                     Turn {icebergEnabled ? "off" : "on"} Analytics Buckets
@@ -773,11 +772,11 @@ export default function AnalyticsPage() {
                       room.avg_utilization > 90 ||
                       room.avg_utilization < 15
                   ).length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <Building2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">All rooms operating normally</p>
-                    </div>
-                  )}
+                      <div className="text-center py-8 text-gray-500">
+                        <Building2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">All rooms operating normally</p>
+                      </div>
+                    )}
                 </div>
               </CardContent>
             </Card>
@@ -841,13 +840,12 @@ export default function AnalyticsPage() {
                           <td className="py-3 px-4 text-center">
                             <div className="flex items-center justify-center space-x-2">
                               <div
-                                className={`w-2 h-2 rounded-full ${
-                                  room.avg_utilization > 80
-                                    ? "bg-red-500"
-                                    : room.avg_utilization > 50
+                                className={`w-2 h-2 rounded-full ${room.avg_utilization > 80
+                                  ? "bg-red-500"
+                                  : room.avg_utilization > 50
                                     ? "bg-yellow-500"
                                     : "bg-green-500"
-                                }`}
+                                  }`}
                               ></div>
                               <span className="font-medium">
                                 {room.avg_utilization}%

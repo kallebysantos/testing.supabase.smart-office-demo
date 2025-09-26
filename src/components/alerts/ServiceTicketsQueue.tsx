@@ -18,10 +18,10 @@ interface ServiceTicketsQueueProps {
   assignedTickets: ServiceTicketWithRoom[]
 }
 
-export function ServiceTicketsQueue({ 
-  queuedTickets, 
-  processingTickets, 
-  assignedTickets 
+export function ServiceTicketsQueue({
+  queuedTickets,
+  processingTickets,
+  assignedTickets
 }: ServiceTicketsQueueProps) {
   return (
     <Card>
@@ -116,10 +116,10 @@ function TicketQueueItem({ ticket }: TicketQueueItemProps) {
           <div className={`w-2 h-2 rounded-full ${severityColor}`} />
           <div className="flex items-center space-x-1">
             {ticket.external_ticket_id && (
-              <Image 
-                src="/images/servicenowicon.png" 
-                alt="ServiceNow" 
-                width={14} 
+              <Image
+                src="/images/servicenowicon.png"
+                alt="ServiceNow"
+                width={14}
                 height={14}
                 className="opacity-75"
               />
@@ -140,12 +140,12 @@ function TicketQueueItem({ ticket }: TicketQueueItemProps) {
       <div className="space-y-1">
         <h5 className="font-medium text-sm text-gray-900">{ticket.room?.name || 'Unknown Room'}</h5>
         <p className="text-xs text-gray-600 line-clamp-2">{ticket.description}</p>
-        
-        <div className="flex items-center justify-between pt-2">
+
+        <div className="flex flex-wrap igap-2 tems-center justify-between pt-2">
           <span className="text-xs text-gray-500">
             Created {formatTimeAgo(ticket.created_at)}
           </span>
-          
+
           {ticket.assigned_to && (
             <span className="text-xs text-blue-600 font-medium">
               {ticket.assigned_to}

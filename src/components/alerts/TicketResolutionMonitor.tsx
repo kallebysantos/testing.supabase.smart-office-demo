@@ -22,9 +22,9 @@ interface TicketResolutionMonitorProps {
   onResolveTicket: (ticketId: string, notes: string) => Promise<void>
 }
 
-export function TicketResolutionMonitor({ 
-  resolvedTickets, 
-  onResolveTicket 
+export function TicketResolutionMonitor({
+  resolvedTickets,
+  onResolveTicket
 }: TicketResolutionMonitorProps) {
   return (
     <Card>
@@ -48,7 +48,7 @@ export function TicketResolutionMonitor({
             <p className="text-sm">No recent resolutions</p>
           </div>
         )}
-        
+
         <div className="mt-6 pt-4 border-t">
           <ManualResolutionTool onResolve={onResolveTicket} />
         </div>
@@ -64,7 +64,7 @@ interface ResolvedTicketItemProps {
 function ResolvedTicketItem({ ticket }: ResolvedTicketItemProps) {
   const severityColor = getTicketSeverityColor(ticket.severity)
   const slaStatus = getSLAStatus(ticket)
-  const resolutionTime = ticket.resolved_at 
+  const resolutionTime = ticket.resolved_at
     ? formatTimeAgo(ticket.resolved_at)
     : 'Unknown'
 
@@ -75,10 +75,10 @@ function ResolvedTicketItem({ ticket }: ResolvedTicketItemProps) {
           <div className={`w-2 h-2 rounded-full ${severityColor}`} />
           <div className="flex items-center space-x-1">
             {ticket.external_ticket_id && (
-              <Image 
-                src="/images/servicenowicon.png" 
-                alt="ServiceNow" 
-                width={14} 
+              <Image
+                src="/images/servicenowicon.png"
+                alt="ServiceNow"
+                width={14}
                 height={14}
                 className="opacity-75"
               />
@@ -87,17 +87,14 @@ function ResolvedTicketItem({ ticket }: ResolvedTicketItemProps) {
               {ticket.external_ticket_id || ticket.id.slice(0, 8)}
             </span>
           </div>
-          <Badge variant="outline" className="text-xs text-green-700 border-green-300">
-            Resolved
+          <Badge variant="outline" className={`text-xs ${slaStatus.color}`}>
+            {slaStatus.text}
           </Badge>
           {ticket.external_ticket_id && (
             <ExternalLink className="h-3 w-3 text-gray-400" />
           )}
         </div>
         <div className="flex items-center space-x-2">
-          <Badge variant="outline" className={`text-xs ${slaStatus.color}`}>
-            {slaStatus.text}
-          </Badge>
           <span className="text-xs text-gray-500">
             P{ticket.priority}
           </span>
@@ -107,25 +104,26 @@ function ResolvedTicketItem({ ticket }: ResolvedTicketItemProps) {
       <div className="space-y-1">
         <h5 className="font-medium text-sm text-gray-900">{ticket.room?.name || 'Unknown Room'}</h5>
         <p className="text-xs text-gray-600 line-clamp-2">{ticket.title}</p>
-        
-        <div className="flex items-center justify-between pt-2">
-          <div className="flex items-center space-x-4">
+
+        <div className="flex flex-col gap-2 justify-between pt-2">
+          {ticket.assigned_to && (
+            <div className="flex flex-wrap items-center space-x-1 text-xs text-blue-600">
+              <User className="h-3 w-3" />
+              <span>{ticket.assigned_to}</span>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-xs text-gray-500">
+              Created {getTicketAgeText(ticket.created_at)}
+            </span>
+
             <div className="flex items-center space-x-1 text-xs text-gray-500">
               <Clock className="h-3 w-3" />
               <span>Resolved {resolutionTime}</span>
             </div>
-            
-            {ticket.assigned_to && (
-              <div className="flex items-center space-x-1 text-xs text-blue-600">
-                <User className="h-3 w-3" />
-                <span>{ticket.assigned_to}</span>
-              </div>
-            )}
           </div>
-          
-          <span className="text-xs text-gray-500">
-            {getTicketAgeText(ticket.created_at)}
-          </span>
+
         </div>
 
         {/* Resolution Notes */}
@@ -156,7 +154,7 @@ function ManualResolutionTool({ onResolve }: ManualResolutionToolProps) {
 
   const handleResolve = async () => {
     if (!ticketId.trim() || !notes.trim()) return
-    
+
     setLoading(true)
     try {
       await onResolve(ticketId.trim(), notes.trim())
@@ -195,7 +193,7 @@ function ManualResolutionTool({ onResolve }: ManualResolutionToolProps) {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          
+
           <div>
             <label className="text-sm font-medium text-gray-700 mb-2 block">
               Resolution Notes
@@ -208,7 +206,7 @@ function ManualResolutionTool({ onResolve }: ManualResolutionToolProps) {
               className="w-full"
             />
           </div>
-          
+
           <div className="flex justify-end space-x-2 pt-4">
             <Button
               variant="outline"
