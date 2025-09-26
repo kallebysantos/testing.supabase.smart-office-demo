@@ -72,6 +72,10 @@ For more information, please refer to the [FEATURES.md](FEATURES.md) file.
    npm run simulate:bookings
    ```
 
+## 🌊 pgflow Workflow Engine
+
+This project includes [pgflow](https://pgflow.dev), a workflow engine for Supabase that helps with background jobs and queue processing. See [PGFLOW.md](./PGFLOW.md) for local development setup and examples.
+
 ## 🚀 Deployment
 
 ### Vercel Deployment (Recommended)
@@ -82,6 +86,8 @@ npm run build
 # Configure environment variables in Vercel dashboard
 # Connect GitHub repository for automatic deployments
 ```
+
+For pgflow workflows in production, see [Deploy to Supabase.com](https://www.pgflow.dev/how-to/deploy-to-supabasecom/).
 
 ### Manual Production Deployment
 
