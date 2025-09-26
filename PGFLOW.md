@@ -218,17 +218,37 @@ WHERE table_schema = 'pgflow';
 -- Expected: flows, steps, deps, runs, step_states, step_tasks, workers
 ```
 
-## 🏷️ Flow Versioning
+## 🌐 Trigger Flows from Browser
 
-> [!TIP]
-> For production, use new slugs instead of deleting flows
+You can trigger pgflow workflows directly from your frontend application using `@pgflow/client` with Supabase Realtime.
+
+📚 **Full Documentation**: See [@pgflow/client README](https://github.com/pgflow-dev/pgflow/tree/main/pkgs/client#quick-start) for advanced usage, error handling, and TypeScript types.
+
+### Basic Usage
 
 ```typescript
-// v1
-new Flow({ slug: "process_order_v1" });
+import { createClient } from '@supabase/supabase-js'
+import { PgflowClient } from '@pgflow/client'
 
-// v2 with changes
-new Flow({ slug: "process_order_v2" });
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+const pgflow = new PgflowClient(supabase)
+
+// Start a flow from your React/Vue/Svelte app
+const run = await pgflow.startFlow('greet_user', {
+  first_name: 'Alice',
+  last_name: 'Smith'
+})
+
+// Monitor flow completion
+run.on('completed', (event) => {
+  console.log('Flow completed! Output:', event.output)
+})
+
+// Or wait for completion
+const completed = await run.waitForStatus('completed', {
+  timeoutMs: 30000
+})
+console.log('Result:', completed.output)
 ```
 
 ## 📚 Learn More
