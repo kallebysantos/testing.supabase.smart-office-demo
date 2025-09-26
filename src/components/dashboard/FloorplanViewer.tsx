@@ -73,10 +73,9 @@ export function FloorplanViewer({ className = '' }: FloorplanViewerProps) {
         const { data: sensorReadings, error: sensorError } = await supabase
           .from('sensor_readings')
           .select('*')
-          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
           .in(
             'room_id',
-            roomsData.map((r: any) => r.id)
+            roomsData.map((r: Room) => r.id)
           )
           .order('timestamp', { ascending: false })
 
@@ -84,13 +83,11 @@ export function FloorplanViewer({ className = '' }: FloorplanViewerProps) {
 
         if (sensorReadings) {
           const latestReadings = new Map<string, SensorReading>()
-          /* eslint-disable @typescript-eslint/no-explicit-any */
-          ;(sensorReadings as any[]).forEach((reading: any) => {
+          ;(sensorReadings as SensorReading[]).forEach((reading: SensorReading) => {
             if (!latestReadings.has(reading.room_id)) {
               latestReadings.set(reading.room_id, reading)
             }
           })
-          /* eslint-enable @typescript-eslint/no-explicit-any */
           setSensorData(latestReadings)
         }
       }
