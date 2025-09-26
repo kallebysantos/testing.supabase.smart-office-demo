@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase/client";
 import {
@@ -34,6 +34,10 @@ interface SensorReading {
 interface FloorplanViewerProps {
   className?: string;
   debugMode?: boolean;
+  buildingDetails: {
+    building: string,
+    floor: number
+  }
 }
 
 // These are percentage-based positions (0-100) relative to image dimensions
@@ -45,7 +49,7 @@ const ROOM_POSITIONS = [
   { name: "Conference Room 4", x: 69.0, y: 62.1 },  // 1300/1600 * 100, 740/800 * 100
 ];
 
-export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
+export const FloorplanViewer = memo(function ({ buildingDetails, className = "" }: FloorplanViewerProps) {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [sensorData, setSensorData] = useState<Map<string, SensorReading>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -57,6 +61,9 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
 
   useEffect(() => {
     fetchRooms();
+  }, [buildingDetails])
+
+  useEffect(() => {
     const channel = setupRealtimeSubscription();
 
     return () => {
@@ -71,6 +78,8 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
       const { data: roomsData, error: roomsError } = await supabase
         .from("rooms")
         .select("*")
+        .eq('building', buildingDetails.building)
+        .eq('floor', buildingDetails.floor)
         .limit(4)
         .order("id");
 
@@ -78,7 +87,7 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
 
       if (roomsData) {
         setRooms(roomsData);
-        
+
         const { data: sensorReadings, error: sensorError } = await supabase
           .from("sensor_readings")
           .select("*")
@@ -109,7 +118,7 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
 
   const setupRealtimeSubscription = () => {
     console.log("🔄 FloorplanViewer: Setting up real-time subscription...");
-    
+
     const channel = supabase
       .channel("floorplan-sensor-updates")
       .on(
@@ -121,26 +130,26 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
         },
         (payload) => {
           console.log("📊 FloorplanViewer: Received sensor update:", payload);
-          
+
           if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
             const newReading = payload.new as SensorReading;
-            
+
             setSensorData(prev => {
               const updated = new Map(prev);
               updated.set(newReading.room_id, newReading);
-              
+
               // Log which room was updated
               const room = rooms.find(r => r.id === newReading.room_id);
               if (room) {
                 console.log(`✅ Updated ${room.name}: ${newReading.occupancy}/${room.capacity} occupancy`);
               }
-              
+
               return updated;
             });
-            
+
             // Add visual feedback for updated room
             setRecentlyUpdated(prev => new Set(prev).add(newReading.room_id));
-            
+
             // Remove the glow effect after 3 seconds
             setTimeout(() => {
               setRecentlyUpdated(prev => {
@@ -154,7 +163,7 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
       )
       .subscribe((status) => {
         console.log("FloorplanViewer real-time subscription status:", status);
-        
+
         if (status === "SUBSCRIBED") {
           console.log("✅ FloorplanViewer: Real-time subscription active");
           setRealtimeStatus("connected");
@@ -169,14 +178,14 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
           setRealtimeStatus("disconnected");
         }
       });
-      
+
     return channel;
   };
 
   const getRoomStatus = (room: Room): "available" | "occupied" | "over-capacity" => {
     const sensor = sensorData.get(room.id);
     if (!sensor) return "available";
-    
+
     if (sensor.occupancy === 0) return "available";
     if (sensor.occupancy > room.capacity) return "over-capacity";
     return "occupied";
@@ -229,19 +238,18 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
         {/* Real-time Status Indicator */}
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className={`h-2 w-2 rounded-full ${
-              realtimeStatus === "connected" ? "bg-green-500 animate-pulse" :
+            <div className={`h-2 w-2 rounded-full ${realtimeStatus === "connected" ? "bg-green-500 animate-pulse" :
               realtimeStatus === "connecting" ? "bg-yellow-500 animate-pulse" :
-              "bg-red-500"
-            }`} />
+                "bg-red-500"
+              }`} />
             <span className="text-sm text-gray-600">
               {realtimeStatus === "connected" ? "Live updates active" :
-               realtimeStatus === "connecting" ? "Connecting..." :
-               "Offline"}
+                realtimeStatus === "connecting" ? "Connecting..." :
+                  "Offline"}
             </span>
           </div>
         </div>
-        
+
         {/* Debug Controls */}
         {/* <div className="mb-2 flex items-center justify-between">
           <Button
@@ -259,9 +267,9 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
             </div>
           )}
         </div> */}
-        
+
         {/* Floorplan Container - 50% smaller (max-w-4xl instead of full width) */}
-        <div 
+        <div
           ref={containerRef}
           className="relative w-full h-[400px] bg-white rounded-lg overflow-hidden border border-gray-200"
         >
@@ -273,27 +281,27 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
             className="object-contain"
             priority
           />
-          
+
           {rooms.map((room, index) => {
             const position = ROOM_POSITIONS[index];
             const status = getRoomStatus(room);
             const sensor = sensorData.get(room.id);
             const isRecentlyUpdated = recentlyUpdated.has(room.id);
-            
+
             return (
               <Tooltip key={room.id}>
                 <TooltipTrigger asChild>
                   <div className="absolute flex h-4 w-4" style={{
-                      left: `${position.x}%`,
-                      top: `${position.y}%`,
-                      transform: "translate(-50%, -50%)",
-                    }}>
+                    left: `${position.x}%`,
+                    top: `${position.y}%`,
+                    transform: "translate(-50%, -50%)",
+                  }}>
                     <span className={cn("absolute inline-flex h-full w-full rounded-full opacity-75", getStatusColor(status), isRecentlyUpdated ? "animate-ping" : "")}></span>
                     <span className={cn("relative inline-flex rounded-full h-4 w-4", getStatusColor(status))}></span>
                   </div>
                 </TooltipTrigger>
-                <TooltipContent 
-                  side="top" 
+                <TooltipContent
+                  side="top"
                   className="bg-white/95 backdrop-blur-sm border-gray-200 p-3 min-w-[250px]"
                 >
                   <div className="space-y-2">
@@ -303,7 +311,7 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
                         {status === "over-capacity" ? "Over Capacity" : status}
                       </Badge>
                     </div>
-                    
+
                     {sensor && (
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div className="flex items-center gap-1 text-gray-600">
@@ -324,7 +332,7 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
                         </div>
                       </div>
                     )}
-                    
+
                     {room.amenities && room.amenities.length > 0 && (
                       <div className="pt-1 border-t border-gray-100">
                         <div className="flex flex-wrap gap-1">
@@ -336,7 +344,7 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
                         </div>
                       </div>
                     )}
-                    
+
                     <div className="text-xs text-gray-500">
                       Floor {room.floor} • Last updated: {sensor ? new Date(sensor.last_updated).toLocaleTimeString() : "N/A"}
                     </div>
@@ -345,7 +353,7 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
               </Tooltip>
             );
           })}
-          
+
           {/* Debug Overlay - Shows click position */}
           {/* {showDebug && clickPosition && (
             <div
@@ -358,7 +366,7 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
             />
           )} */}
         </div>
-        
+
         {/* Instructions for Debug Mode */}
         {/* {showDebug && (
           <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
@@ -370,4 +378,4 @@ export function FloorplanViewer({ className = "" }: FloorplanViewerProps) {
       </div>
     </TooltipProvider>
   );
-}
+});

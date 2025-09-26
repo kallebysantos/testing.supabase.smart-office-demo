@@ -78,6 +78,19 @@ export default function DashboardPage() {
   const [selectedBuilding, setSelectedBuilding] = useState<string>();
   const [selectedFloor, setSelectedFloor] = useState<number>();
 
+  function handleSelectBuilding(building: string) {
+    const selectedBuilding = buildings.find(b => b.building === building);
+    if (!selectedBuilding) return;
+
+    setSelectedBuilding(selectedBuilding.building);
+    setSelectedFloor(selectedBuilding.floors.at(0))
+  }
+
+  function handleSelectFloor(floorStr: string) {
+    const floor = Number.parseInt(floorStr);
+    setSelectedFloor(floor);
+  }
+
   const fetchBuildingsData = useCallback(async () => {
     const { data } = await supabase
       .from("building_details")
@@ -388,6 +401,7 @@ export default function DashboardPage() {
     );
   }
 
+
   if (!user || !userProfile || !metrics) {
     return null;
   }
@@ -469,7 +483,7 @@ export default function DashboardPage() {
                 <div className="flex items-center space-x-2">
                   <Select
                     value={selectedBuilding}
-                    onValueChange={setSelectedBuilding}
+                    onValueChange={handleSelectBuilding}
                   >
                     <SelectTrigger className="w-32">
                       <SelectValue />
@@ -490,7 +504,7 @@ export default function DashboardPage() {
                   <span className="text-gray-500">-</span>
                   <Select
                     value={selectedFloor?.toString()}
-                    onValueChange={(v) => setSelectedFloor(Number.parseInt(v))}
+                    onValueChange={handleSelectFloor}
                   >
                     <SelectTrigger className="w-32">
                       <SelectValue />
@@ -509,9 +523,11 @@ export default function DashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <FloorplanViewer
-                className="w-full"
-              />
+              {
+                selectedBuilding && selectedFloor && (
+                  <FloorplanViewer buildingDetails={{ building: selectedBuilding, floor: selectedFloor }} className="w-full" />
+                )
+              }
             </CardContent>
           </Card>
 
