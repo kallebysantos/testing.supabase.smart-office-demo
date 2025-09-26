@@ -131,26 +131,31 @@ EdgeWorker.start(MyFlow, {
 });
 ```
 
-## 🔄 Modify Existing Flows
+## 🔄 Modify Existing Flows (Destructive)
 
-> [!CRITICAL]
-> When changing flow structure (add/remove/reorder steps), you MUST delete the old flow first!
-
-```sql
--- 1. Delete existing flow
-SELECT pgflow.delete_flow('your_flow_slug');
-```
+> [!WARNING]
+> This deletes ALL flow data - use only during development!
 
 ```bash
+# 1. Delete flow data (run in Supabase Studio SQL Editor at http://localhost:54323)
+SELECT pgflow.delete_flow_and_data('your_flow_slug');
+
 # 2. Remove old migration
 rm supabase/migrations/*_your_flow_name.sql
 
-# 3. Recompile
-npx pgflow@latest compile --deno-json ... your.flow.ts
+# 3. Modify your flow code in .flow.ts file
 
-# 4. Apply
+# 4. Compile new migration
+npx pgflow@latest compile \
+  --deno-json supabase/functions/<function-name>/deno.json \
+  supabase/functions/<function-name>/<flow-name>.flow.ts
+
+# 5. Reset database to apply all migrations fresh
 npx supabase db reset
 ```
+
+> [!TIP]
+> For production, use versioned flows (`my_flow_v1` → `my_flow_v2`) to preserve data
 
 ## 📊 Monitoring Queries
 
