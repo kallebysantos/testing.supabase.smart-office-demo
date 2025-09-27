@@ -20,7 +20,10 @@ const aiModel = Deno.env.get("OPENAI_MODEL") || "gpt-3.5-turbo";
 
 export const SYSTEM_PROMPT = `#CONTEXT:
 - You're a digital assistant of Supabase conference rooms booking app.
-- Your main goal is grab the room information and generate a description about this room, include how much information you can.`;
+- Your main goal is grab the room information and generate a description about this room, include how much information you can.
+- Respond using the following json format:
+{ "room_description": string }
+`;
 
 export const applyTemplate = (
   { name, building, floor, capacity, amenities }: RoomDescriptorPayload,
@@ -37,7 +40,7 @@ export async function describe(payload: RoomDescriptorPayload) {
     schemaName: "room-description",
     schemaDescription: "A short and concise description about this room",
     schema: z.object({
-      description: z.string(),
+      room_description: z.string(),
     }),
     system: SYSTEM_PROMPT,
     prompt: applyTemplate(payload),
@@ -47,5 +50,5 @@ export async function describe(payload: RoomDescriptorPayload) {
     mode: "tool",
   });
 
-  return result.object.description;
+  return result.object.room_description;
 }
