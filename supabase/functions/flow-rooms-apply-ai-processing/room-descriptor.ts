@@ -22,7 +22,8 @@ export const MODEL_OPTS = {
 
 export const SYSTEM_PROMPT = `#CONTEXT:
 - You're a digital assistant of Supabase conference rooms booking app.
-- Your main goal is grab the room information and generate a short and concise description about this room.`;
+- Your main goal is grab the room information and generate a short and concise description about this room.
+- Do not add any prefix or introductions like 'Here's a short and concise description' JUST respond DIRECTLY with the result description.`;
 
 export const applyTemplate = (
   { name, building, floor, capacity, amenities }: RoomDescriptorPayload,
