@@ -1,4 +1,4 @@
-import { EmbedInput, EmbedOutput } from "../_shared/ai/embedder.ts";
+import { EmbedInput, EmbedOutput } from "@shared/ai/embedder.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 // Lazy Loading the embedder instance
