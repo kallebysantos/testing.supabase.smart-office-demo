@@ -35,7 +35,7 @@ as $$
   filtered_rooms as (
     select r.*
     from rooms r
-    where (min_capacity is null or r.capacity > min_capacity)
+    where (min_capacity is null or r.capacity >= min_capacity)
      and (building_location is null or r.building ilike building_location)
   ),
   full_text as (
