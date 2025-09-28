@@ -16,11 +16,10 @@ export const searchRoomInputSchema = z.object({
   enriched_query: z.string().describe(
     "A natural language very rich description about the room you're looking for.",
   ),
-  building_location: z.optional(
-    z.string().describe(
-      "A specific building office location for this room",
-    ),
-  ),
+  building_location: z.preprocess(
+    (val) => (typeof val === "string" && val === "") ? undefined : val,
+    z.optional(z.string().describe("A specific building office location for this room"),
+  )),
   minimum_capacity: z.preprocess(
     (val) => (typeof val === "string") ? Number.parseInt(val) : val,
     z.number().describe(

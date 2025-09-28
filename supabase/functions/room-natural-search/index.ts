@@ -57,5 +57,5 @@ Deno.serve(async (req) => {
 
   const rooms = await searchRoom(input);
 
-  return Response.json({ rooms });
+  return Response.json(rooms);
 });
