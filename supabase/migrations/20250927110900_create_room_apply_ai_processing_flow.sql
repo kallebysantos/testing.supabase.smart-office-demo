@@ -11,26 +11,15 @@ returns trigger
 language plpgsql
 security definer
 as $$
-  declare
-    result bigint;
 begin
-  with value as (
-    select jsonb_build_object('id', n.id) as id
-    from new_table n
-  ),
-  send as (
-    select pgflow.start_flow('room_apply_ai_processing', id)
-    from value
-  )
-  select count(*) from send into result;
+  perform pgflow.start_flow('room_apply_ai_processing', (select jsonb_build_object('id', NEW.id)));
 
-  return null;
+  return NEW;
 end;
 $$;
 
 create or replace trigger on_handle_new_rooms_and_apply_ai_process_batch
 after insert on rooms
-referencing new table as new_table
   for each row
   execute function private.handle_new_rooms_and_apply_ai_process_batch();
 
