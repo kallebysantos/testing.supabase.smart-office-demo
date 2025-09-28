@@ -21,7 +21,7 @@ interface UseRoomsReturn {
   rooms: RoomWithSensorData[];
   loading: boolean;
   error: string | null;
-  refetch: () => Promise<void>;
+  refetch: (search?: string) => Promise<void>;
 }
 
 export function useRooms(options: UseRoomsOptions = {}): UseRoomsReturn {
@@ -32,9 +32,11 @@ export function useRooms(options: UseRoomsOptions = {}): UseRoomsReturn {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRooms = useCallback(async () => {
+  const fetchRooms = useCallback(async (search?: string) => {
+    setLoading(true);
+
     try {
-      const response = await roomsApi.getRoomsWithSensorData();
+      const response = await roomsApi.getRoomsWithSensorData(search);
 
       if (response.success && response.data) {
         // Apply RLS filtering based on user's floor access
@@ -61,17 +63,17 @@ export function useRooms(options: UseRoomsOptions = {}): UseRoomsReturn {
           prevRooms.map((room) =>
             room.id === newReading.room_id
               ? {
-                  ...room,
-                  currentOccupancy: newReading.occupancy,
-                  currentTemperature: newReading.temperature ?? undefined,
-                  currentNoiseLevel: newReading.noise_level ?? undefined,
-                  currentAirQuality: newReading.air_quality ?? undefined,
-                  lastUpdated: newReading.timestamp,
-                  status: determineRoomStatus(
-                    newReading.occupancy,
-                    room.capacity
-                  ),
-                }
+                ...room,
+                currentOccupancy: newReading.occupancy,
+                currentTemperature: newReading.temperature ?? undefined,
+                currentNoiseLevel: newReading.noise_level ?? undefined,
+                currentAirQuality: newReading.air_quality ?? undefined,
+                lastUpdated: newReading.timestamp,
+                status: determineRoomStatus(
+                  newReading.occupancy,
+                  room.capacity
+                ),
+              }
               : room
           )
         );
