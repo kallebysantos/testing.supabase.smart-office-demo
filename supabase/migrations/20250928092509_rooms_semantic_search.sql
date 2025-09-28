@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 create or replace function rooms_semantic_search(
     query_embedding vector (384),
     match_threshold float,
