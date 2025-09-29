@@ -27,8 +27,8 @@ For more information, please refer to the [FEATURES.md](FEATURES.md) file.
    # Configure your Supabase project specific variables
    cp .env.example .env.local
 
-   # add a functions .env file, add an OPENAI_API_KEY to it
-   touch supabase/functions/.env
+   # add a functions .env.local file, add an OPENAI_API_KEY to it
+   cp supabase/functions/.env.example supabase/functions/.env.local
    ```
 
 3. **Start a local Supabase dev environment**
