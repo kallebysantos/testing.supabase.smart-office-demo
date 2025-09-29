@@ -23,9 +23,6 @@ export interface RoomNaturalSearchInput {
 
 Deno.serve(async (req) => {
   try {
-    console.log('Request method:', req.method)
-    console.log('Request headers:', Object.fromEntries(req.headers.entries()))
-
     // Handle CORS preflight requests
     if (req.method === 'OPTIONS') {
       return new Response(null, {
@@ -44,32 +41,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Method not allowed' }, { status: 405 })
     }
 
-    // Check if request has a body
-    const contentType = req.headers.get('content-type')
-    console.log('Content-Type:', contentType)
-
-    // Allow both application/json and text/plain (Supabase client sends text/plain)
-    if (!contentType || (!contentType.includes('application/json') && !contentType.includes('text/plain'))) {
-      console.log('Invalid content type')
-      return Response.json({ error: 'Content-Type must be application/json or text/plain' }, { status: 400 })
-    }
-
     // Parse JSON with error handling
     let body: RoomNaturalSearchInput
     try {
       body = await req.json()
-      console.log('Parsed body:', body)
     } catch (error) {
-      console.log('JSON parse error:', error)
       return Response.json({ error: 'Invalid JSON in request body' }, { status: 400 })
     }
 
     const { search } = body
-    console.log('room-natural-search:  Search parameter:', search)
     if (!search) {
-      console.log('room-natural-search: Missing search parameter')
       return Response.json(
-        { error: "room-natural-search: missing required parameter: 'search'" },
+        { error: "missing required parameter: 'search'" },
         {
           status: 400,
         }
