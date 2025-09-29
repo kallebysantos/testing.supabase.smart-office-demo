@@ -11,7 +11,7 @@ interface RoomsHeaderProps {
 
 export function RoomsHeader({ roomCount }: RoomsHeaderProps) {
   return (
-    <div className="mb-8">
+    <div className="mb-4">
       <div className="flex flex-wrap-reverse md:flex-row items-center justify-between mb-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Conference Rooms</h1>

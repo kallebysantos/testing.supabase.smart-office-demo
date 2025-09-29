@@ -1,0 +1,8 @@
+{
+  "imports": {
+    "@shared/": "../_shared/",
+    "@pgflow/dsl": "npm:@pgflow/dsl@0.6.1",
+    "@pgflow/dsl/supabase": "npm:@pgflow/dsl@0.6.1/supabase",
+    "@pgflow/edge-worker": "jsr:@pgflow/edge-worker@0.6.1"
+  }
+}

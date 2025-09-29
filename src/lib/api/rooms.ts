@@ -5,25 +5,33 @@
  */
 
 import { ApiClient, supabase } from './client'
-import type { 
-  Room, 
-  SensorReading, 
-  RoomWithSensorData, 
-  RoomId, 
+import type {
+  Room,
+  SensorReading,
+  RoomWithSensorData,
+  RoomId,
   ApiResponse,
-  RoomStatus 
+  RoomStatus
 } from '@/types'
 
 export class RoomsApi extends ApiClient {
   /**
    * Fetch all rooms with basic information
    */
-  async getRooms(): Promise<ApiResponse<Room[]>> {
+  async getRooms(search?: string): Promise<ApiResponse<Room[]>> {
+    if (!search) {
+      return this.handleResponse(async () => {
+        return supabase
+          .from('rooms')
+          .select('id, name, capacity, floor, building, amenities, image_url, created_at')
+          .order('name')
+      })
+    }
+
     return this.handleResponse(async () => {
-      return supabase
-        .from('rooms')
-        .select('id, name, capacity, floor, building, amenities, image_url, created_at')
-        .order('name')
+      return supabase.functions.invoke<Room[]>('room-natural-search', {
+        body: JSON.stringify({ search })
+      })
     })
   }
 
@@ -56,7 +64,7 @@ export class RoomsApi extends ApiClient {
    * Fetch sensor readings for a specific room
    */
   async getRoomSensorReadings(
-    roomId: RoomId, 
+    roomId: RoomId,
     limit: number = 100
   ): Promise<ApiResponse<SensorReading[]>> {
     return this.handleResponse(async () => {
@@ -72,10 +80,10 @@ export class RoomsApi extends ApiClient {
   /**
    * Get rooms with their latest sensor data
    */
-  async getRoomsWithSensorData(): Promise<ApiResponse<RoomWithSensorData[]>> {
+  async getRoomsWithSensorData(search?: string): Promise<ApiResponse<RoomWithSensorData[]>> {
     try {
       const [roomsResponse, sensorResponse] = await Promise.all([
-        this.getRooms(),
+        this.getRooms(search),
         this.getLatestSensorReadings()
       ])
 
@@ -100,7 +108,7 @@ export class RoomsApi extends ApiClient {
 
       const roomsWithData: RoomWithSensorData[] = rooms.map(room => {
         const latestReading = latestReadingsMap.get(room.id)
-        
+
         return {
           ...room,
           currentOccupancy: latestReading?.occupancy,
