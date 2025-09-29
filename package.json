@@ -11,6 +11,7 @@
     "generate:users": "tsx scripts/generate-users.ts",
     "generate:images": "tsx scripts/generate-room-images.ts",
     "generate:tickets": "tsx scripts/generate-service-tickets.ts",
+    "generate:all": "npm run generate:rooms && npm run generate:users && npm run generate:images && npm run generate:tickets",
     "functions:serve": "supabase functions serve sensor-data-simulator",
     "functions:serve-booking": "supabase functions serve room-booking-simulator",
     "functions:serve-all": "supabase functions serve sensor-data-simulator && supabase functions serve room-booking-simulator",
