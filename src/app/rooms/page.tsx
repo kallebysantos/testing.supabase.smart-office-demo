@@ -1,55 +1,77 @@
 /**
  * Rooms Page - Real-time conference room monitoring
- * 
+ *
  * Displays all conference rooms with live sensor data, occupancy status,
  * and environmental metrics. Uses proper hooks and error boundaries.
  */
 
 'use client'
 
-import { useAuth } from '@/contexts/AuthContext'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import NavigationMenu from '@/components/navigation/NavigationMenu'
 import { RoomsGrid } from '@/components/rooms/RoomsGrid'
 import { RoomsHeader } from '@/components/rooms/RoomsHeader'
-import { ErrorBoundary } from '@/components/ErrorBoundary'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { useRooms } from '@/hooks/useRooms'
 import { Input } from '@/components/ui/input'
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Search } from 'lucide-react'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { useAuth } from '@/contexts/AuthContext'
+import { useRooms } from '@/hooks/useRooms'
+import { CornerDownLeft } from 'lucide-react'
+import { useState } from 'react'
 
 type SearchBarProps = {
   onSearch: (query: string) => void
   disabled?: boolean
 }
 function SearchBar({ onSearch, disabled }: SearchBarProps) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    if (disabled) return;
+    if (disabled) return
 
-    onSearch(query);
-  };
+    onSearch(query)
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full  max-w-2xl">
-      <fieldset className="flex items-center gap-2 w-full" disabled={disabled}>
-        <Input
-          type="text"
-          placeholder="Natural language search..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="flex-1"
-        />
-        <Button type="submit" size="icon">
-          <Search className="h-4 w-4" />
-        </Button>
+    <form onSubmit={handleSubmit} className="flex w-full max-w-2xl relative">
+      <fieldset className="grid gap-2 w-full" disabled={disabled}>
+        <label htmlFor="room-search" className="text-sm text-gray-600">
+          Use natural language to search for a room
+        </label>
+        <div className="relative">
+          <Input
+            id="room-search"
+            type="text"
+            placeholder="A room that can seat 10 or more people"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="flex-1"
+          />
+          {query && (
+            <>
+              <span className="absolute right-2 top-1/2 -translate-y-1/2">
+                <CornerDownLeft className="text-muted-foreground" size={14} />
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                className="absolute -right-20 top-1/2 -translate-y-1/2"
+                onClick={(e) => {
+                  e.preventDefault()
+                  setQuery('')
+                  onSearch('')
+                }}
+              >
+                Reset
+              </Button>
+            </>
+          )}
+        </div>
       </fieldset>
     </form>
-  );
+  )
 }
 
 export default function RoomsPage() {
@@ -71,11 +93,10 @@ export default function RoomsPage() {
       <main className="md:ml-64">
         <div className="px-4 py-8 md:px-8">
           <ErrorBoundary>
-            <div className='flex flex-col gap-6'>
-
+            <div className="flex flex-col gap-6">
               <RoomsHeader roomCount={rooms.length} />
 
-              <div className='flex items-center justify-center mb-6'>
+              <div className="flex items-center  mb-6">
                 <SearchBar onSearch={getRooms} disabled={roomsLoading} />
               </div>
 
@@ -83,11 +104,11 @@ export default function RoomsPage() {
                 <div className="text-center py-12">
                   <p className="text-red-600 mb-4">{error}</p>
                 </div>
-              )
-                : roomsLoading
-                  ? <LoadingSpinner />
-                  : <RoomsGrid rooms={rooms} />
-              }
+              ) : roomsLoading ? (
+                <LoadingSpinner />
+              ) : (
+                <RoomsGrid rooms={rooms} />
+              )}
             </div>
           </ErrorBoundary>
         </div>
