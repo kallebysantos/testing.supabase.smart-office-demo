@@ -165,9 +165,9 @@ const DEPARTMENTS = [
 
 // Role distribution for law firm
 const ROLE_DISTRIBUTION = {
-  admin: 0.08, // 8% - 2 people
-  facilities: 0.12, // 12% - 3 people
-  employee: 0.8, // 80% - 20 people
+  admin: 0.2, // 20% - 2 people
+  facilities: 0.3, // 30% - 3 people
+  employee: 0.5, // 50% - 5 people
 };
 
 /**
@@ -302,8 +302,8 @@ async function generateUsers() {
         role === "facilities"
           ? "Facilities Management"
           : role === "admin"
-          ? "Administration"
-          : DEPARTMENTS[Math.floor(Math.random() * DEPARTMENTS.length)];
+            ? "Administration"
+            : DEPARTMENTS[Math.floor(Math.random() * DEPARTMENTS.length)];
 
       usersToInsert.push({
         email,
@@ -324,8 +324,7 @@ async function generateUsers() {
       const userData = usersToInsert[i];
 
       console.log(
-        `🔄 Creating auth user ${i + 1}/${usersToInsert.length}: ${
-          userData.full_name
+        `🔄 Creating auth user ${i + 1}/${usersToInsert.length}: ${userData.full_name
         }`
       );
 
@@ -336,6 +335,9 @@ async function generateUsers() {
             email: userData.email,
             password: "demo123!", // Demo password for all users
             email_confirm: true, // Skip email confirmation for demo
+            app_metadata: {
+              role: userData.role,
+            },
             user_metadata: {
               full_name: userData.full_name,
               role: userData.role,
@@ -397,8 +399,7 @@ async function generateUsers() {
 
         insertedCount++;
         console.log(
-          `✅ SUCCESS ${i + 1}/${usersToInsert.length}: ${
-            userData.full_name
+          `✅ SUCCESS ${i + 1}/${usersToInsert.length}: ${userData.full_name
           } (${userData.role}) - Auth: ${authUser.user.id}`
         );
 
