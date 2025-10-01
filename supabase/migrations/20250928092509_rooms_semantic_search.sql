@@ -1,7 +1,13 @@
+SET
+  search_path TO "$user",
+  public,
+  extensions;
+
+
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 create or replace function rooms_semantic_search(
-    query_embedding vector (384),
+    query_embedding extensions.halfvec(384),
     match_threshold float,
     match_count int
 )
@@ -19,7 +25,7 @@ as $$
 $$;
 
 create or replace function rooms_hybrid_search(
-    query_embedding vector (384),
+    query_embedding extensions.halfvec(384),
     building_location text default null,
     desired_amenities text[] default '{}',
     min_capacity int default null,
@@ -41,7 +47,7 @@ as $$
      and (building_location is null or r.building ilike building_location)
   ),
   full_text as (
-    select 
+    select
       r.id,
       (
         select sum(similarity(amenity, desired))
@@ -53,7 +59,7 @@ as $$
     limit least(match_count, 50) * 2
   ),
   semantic as (
-    select 
+    select
       r.id,
       re.embedding <#> query_embedding as score
     from filtered_rooms r
@@ -65,7 +71,7 @@ as $$
   from semantic
   full outer join full_text on full_text.id = semantic.id
   join filtered_rooms r on r.id = coalesce(semantic.id, full_text.id)
-  order by 
+  order by
     (coalesce(1.0/ (rrf_k + semantic.score), 0.0) * semantic_weight) +
     (coalesce(1.0 / (rrf_k + full_text.score), 0.0) * full_text_weight)
   limit least(match_count, 50);

@@ -1,15 +1,7 @@
 {
   "mcpServers": {
     "supabase": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@supabase/mcp-server-supabase@latest",
-        "--project-ref=nnipoczsqoylnrwidbgp"
-      ],
-      "env": {
-        "SUPABASE_ACCESS_TOKEN": "sbp_b055f3a117b711b783e9e18574b7b793548d7893"
-      }
+      "url": "http://localhost:54321/mcp"
     }
   }
 }
