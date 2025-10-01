@@ -272,7 +272,21 @@ async function generateUsers() {
 
     console.log("👤 Generating user data...");
     // Generate users
-    const usersToInsert = [];
+    const usersToInsert = [{
+      email: 'fsmith@deweycheathamhowe.com',
+      full_name: `Filipe Smith`,
+      department: 'Administration',
+      role: 'admin',
+      floor_access: getFloorAccess('admin'),
+    },
+    {
+      email: 'chaves@deweycheathamhowe.com',
+      full_name: `Chaves del Ocho`,
+      department: 'Real Estate',
+      role: 'employee',
+      floor_access: [4, 5, 9, 10,],
+    }];
+
     const usedEmails = new Set();
 
     for (let i = 0; i < TOTAL_USERS; i++) {
