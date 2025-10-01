@@ -12,35 +12,12 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Check, Shield, Users, Building2 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import type { UserProfile, UserId } from "@/types";
+import { DEMO_USERS, DemoUser, useAuth } from "@/contexts/AuthContext";
 
 interface UserSwitcherDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-// Define our demo users with different access levels
-const DEMO_USERS: UserProfile[] = [
-  {
-    id: "hermione-granger" as UserId,
-    email: "hermione.granger@dewey-cheatham-howe.law",
-    full_name: "Hermione Granger",
-    role: "facilities",
-    department: "Facilities Management",
-    floor_access: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "ron-weasley" as UserId,
-    email: "ron.weasley@dewey-cheatham-howe.law",
-    full_name: "Ron Weasley",
-    role: "employee",
-    department: "Legal",
-    floor_access: [12, 13],
-    created_at: new Date().toISOString(),
-  },
-];
 
 const getRoleIcon = (role: string) => {
   switch (role) {
@@ -79,16 +56,17 @@ export function UserSwitcherDialog({ open, onOpenChange }: UserSwitcherDialogPro
   const { user, switchUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleUserSwitch = async (newUser: UserProfile) => {
+  const handleUserSwitch = async (newUser: DemoUser) => {
     setIsLoading(true);
-    
-    // Simulate a brief loading state for realism
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    switchUser(newUser);
-    setIsLoading(false);
+
+    const { error } = await switchUser(newUser);
+    if (error) {
+      console.error(error);
+    }
+
     onOpenChange(false);
-    
+    setIsLoading(false);
+
     // Force a page refresh to ensure all components update with new permissions
     window.location.reload();
   };
@@ -110,21 +88,20 @@ export function UserSwitcherDialog({ open, onOpenChange }: UserSwitcherDialogPro
             Switch User Account
           </DialogTitle>
           <DialogDescription>
-            Select a demo user to simulate different access levels. This demonstrates how Row Level Security (RLS) 
+            Select a demo user to simulate different access levels. This demonstrates how Row Level Security (RLS)
             would restrict data access based on user roles in a production environment.
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-6 space-y-4">
           {DEMO_USERS.map((demoUser) => {
-            const isCurrentUser = user?.id === demoUser.id;
-            
+            const isCurrentUser = user?.email === demoUser.email;
+
             return (
               <div
-                key={demoUser.id}
-                className={`relative rounded-lg border p-4 transition-all cursor-pointer hover:bg-gray-50 ${
-                  isCurrentUser ? "border-primary bg-primary/5" : "border-gray-200"
-                }`}
+                key={demoUser.email}
+                className={`relative rounded-lg border p-4 transition-all cursor-pointer hover:bg-gray-50 ${isCurrentUser ? "border-primary bg-primary/5" : "border-gray-200"
+                  }`}
                 onClick={() => !isCurrentUser && handleUserSwitch(demoUser)}
               >
                 {isCurrentUser && (
@@ -135,18 +112,17 @@ export function UserSwitcherDialog({ open, onOpenChange }: UserSwitcherDialogPro
                     </Badge>
                   </div>
                 )}
-                
+
                 <div className="flex items-start gap-4">
                   <Avatar className="h-12 w-12">
-                    <AvatarFallback className={`${
-                      demoUser.role === "facilities" 
-                        ? "bg-primary text-primary-foreground" 
-                        : "bg-secondary text-secondary-foreground"
-                    }`}>
+                    <AvatarFallback className={`${demoUser.role === "facilities"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary text-secondary-foreground"
+                      }`}>
                       {getInitials(demoUser.full_name || demoUser.email)}
                     </AvatarFallback>
                   </Avatar>
-                  
+
                   <div className="flex-1 space-y-2">
                     <div>
                       <h3 className="font-semibold text-gray-900">
@@ -156,7 +132,7 @@ export function UserSwitcherDialog({ open, onOpenChange }: UserSwitcherDialogPro
                         {demoUser.email}
                       </p>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <Badge variant={getRoleBadgeVariant(demoUser.role)} className="gap-1">
                         {getRoleIcon(demoUser.role)}
@@ -166,11 +142,11 @@ export function UserSwitcherDialog({ open, onOpenChange }: UserSwitcherDialogPro
                         {demoUser.department}
                       </span>
                     </div>
-                    
+
                     <p className="text-sm text-gray-600">
                       {getRoleDescription(demoUser.role)}
                     </p>
-                    
+
                     <div className="text-xs text-gray-500">
                       Access to floors: {demoUser.floor_access?.join(", ") || "All"}
                     </div>

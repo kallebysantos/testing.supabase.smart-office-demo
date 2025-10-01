@@ -1,56 +1,123 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 import type { UserProfile } from "@/types";
+import { supabase } from "@/lib/api/client";
+import { Session } from "@supabase/supabase-js";
 
-// Use the full UserProfile type directly
-type DemoUser = UserProfile;
+type ErrorResult<T> = {
+  data: null;
+  error: Error;
+} | {
+  data: T;
+  error: null;
+};
+
+export const DEMO_USERS = [{
+  email: 'fsmith@deweycheathamhowe.com',
+  full_name: `Filipe Smith`,
+  department: 'Facilities Management',
+  role: 'admin',
+  description: 'Full access - all rooms, analytics, alerts, bookings and full sensor data access',
+  floor_access: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+},
+{
+  email: 'chaves@deweycheathamhowe.com',
+  full_name: `Chaves del Ocho`,
+  department: 'Real Estate',
+  role: 'employee',
+  description: 'Limited access - cannot see meeting names or attendee details for privacy',
+  floor_access: [4, 5, 9, 10,],
+}]
+
+export type DemoUser = typeof DEMO_USERS[number];
 
 interface AuthContextType {
-  user: DemoUser | null;
-  userProfile: DemoUser | null;
+  user: UserProfile | null;
+  userProfile: UserProfile | null;
   loading: boolean;
-  signOut: () => void;
-  refreshProfile: () => void;
-  switchUser: (newUser: DemoUser) => void;
+  signOut: () => Promise<void>;
+  refreshProfile: () => Promise<ErrorResult<UserProfile>>
+  switchUser: (newUser: DemoUser) => Promise<ErrorResult<UserProfile>>
+  login: (email: string, password: string) => Promise<ErrorResult<UserProfile>
+  >;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<DemoUser | null>(null);
+  const [userSession, setUserSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Check for demo user in localStorage
-    const demoUser = localStorage.getItem("demo-user");
-    if (demoUser) {
-      try {
-        const parsedUser = JSON.parse(demoUser);
-        setUser(parsedUser);
-      } catch (error) {
-        console.error("Error parsing demo user:", error);
-        localStorage.removeItem("demo-user");
-      }
-    }
-    setLoading(false);
-  }, []);
-
-  const signOut = () => {
-    localStorage.removeItem("demo-user");
+  const signOut = async () => {
+    await supabase.auth.signOut()
+    localStorage.removeItem("session");
     setUser(null);
+    setUserSession(null);
   };
 
-  const refreshProfile = () => {
-    // In demo mode, profile is the same as user
-    // This is a no-op but kept for compatibility
+  const syncUserSession = useCallback(async () => {
+    try {
+      const session = localStorage.getItem("session");
+      if (session) {
+        const parsedSession: Session = JSON.parse(session);
+
+        setUserSession(parsedSession);
+        await refreshProfile(parsedSession);
+      };
+    } catch (error) {
+      console.error("Error while sync user session:", error);
+      await signOut();
+    }
+  }, [])
+
+  useEffect(() => {
+    syncUserSession().finally(() => setLoading(false));
+  }, [syncUserSession]);
+
+  const refreshProfile = async (forceSession?: Session): Promise<ErrorResult<UserProfile>> => {
+    // If the 'userSession' may not available if calling 'setUserSession' and then 'refreshProfile' sequentially
+    // So callers may supply a forceSession instead
+    const session = forceSession || userSession;
+    if (!session) {
+      return { data: null, error: new Error("undefined 'user session', you must login first.") };
+    }
+
+    const { data: userProfile, error: getUserProfileError } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    if (getUserProfileError) {
+      return { data: null, error: getUserProfileError as Error };
+    }
+
+    setUser(userProfile);
+
+    return { data: userProfile as UserProfile, error: null }
   };
 
-  const switchUser = (newUser: DemoUser) => {
-    localStorage.setItem("demo-user", JSON.stringify(newUser));
-    setUser(newUser);
+  const switchUser = async (newUser: DemoUser): Promise<ErrorResult<UserProfile>> => {
+    return await login(newUser.email, "demo123!");
   };
+
+  async function login(email: string, password: string): Promise<ErrorResult<UserProfile>> {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email, password
+    });
+
+    if (error) {
+      return { data: null, error: error as Error };
+    }
+
+    localStorage.setItem("session", JSON.stringify(data.session));
+    setUserSession(data.session);
+
+    return await refreshProfile(data.session);
+  }
 
   const value = {
     user,
@@ -59,6 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     refreshProfile,
     switchUser,
+    login,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
