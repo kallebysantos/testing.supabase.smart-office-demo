@@ -143,19 +143,12 @@ export class AlertsApi extends ApiClient {
    */
   async triggerViolationDetection(): Promise<ApiResponse<unknown>> {
     try {
-      const response = await fetch("/api/detect-violations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const { data, error } = await supabase.functions.invoke('capacity-violation-detector')
 
-      const data = await response.json();
-
-      if (!response.ok) {
+      if (error) {
         return {
           success: false,
-          error: data.error || "Failed to trigger violation detection",
+          error: error || "Failed to trigger violation detection",
         };
       }
 
