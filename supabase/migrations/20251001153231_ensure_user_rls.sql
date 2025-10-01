@@ -25,7 +25,7 @@ on rooms
 for select using (
   (select auth.jwt()->'app_metadata'->>'role') = 'admin'
   or public.has_floor_access(floor)
-)
+);
 
 -- Ensure non admin users only see their own bookings
 drop policy if exists "public_read_bookings" on room_bookings;
@@ -34,4 +34,4 @@ on room_bookings
 for select using (
   (select auth.jwt()->'app_metadata'->>'role') = 'admin'
   or (select auth.jwt()->>'email') = organizer_email
-)
+);
