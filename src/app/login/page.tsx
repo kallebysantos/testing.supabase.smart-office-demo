@@ -19,8 +19,8 @@ export default function LoginPage() {
   const [showDemoAccounts, setShowDemoAccounts] = useState(false)
   const [isLoggingIn, setIsLoggingIn] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [email, setEmail] = useState('nymphadora.evenstar@deweycheathamhowe.com')
-  const [password, setPassword] = useState('demo123!')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
   const handleDemoLogin = async (user: DemoUser) => {
     setIsLoggingIn(true)
