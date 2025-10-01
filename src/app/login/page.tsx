@@ -112,7 +112,7 @@ export default function LoginPage() {
                   </Button>
                 </div>
                 <small className='text-xs text-muted-foreground'>
-                  Tip: demo password is "<code>demo123!</code>"
+                  Tip: demo password is <code>{`"demo123!"`}</code>
                 </small>
               </div>
 
