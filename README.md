@@ -139,6 +139,24 @@ npm run functions:deploy-all
    npx supabase db push
    ```
 
+### Step 4: Add vault secrets
+
+In the SQL Editor of your project, run:
+
+```sql
+-- pg_net environment secrets
+select vault.create_secret('https://[PROJECT-REF].supabase.co', 'supabase_url');
+select vault.create_secret('[PROJECT-ANON-KEY]', 'supabase_anon_key');
+```
+
+### Step 5: Update Edge Function secrets
+
+Deploy the secrets in your `.env` file
+
+```bash
+npx supabase secrets set --env-file .env
+```
+
 ### Step 5: Update Environment Variables
 
 1. **Copy your new Supabase credentials** from the project dashboard
