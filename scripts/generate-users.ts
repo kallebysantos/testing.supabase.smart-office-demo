@@ -273,8 +273,8 @@ async function generateUsers() {
     console.log("👤 Generating user data...");
     // Generate users
     const usersToInsert = [{
-      email: 'fsmith@deweycheathamhowe.com',
-      full_name: `Filipe Smith`,
+      email: 'paula@deweycheathamhowe.com',
+      full_name: `Paula Tejando`,
       department: 'Administration',
       role: 'admin',
       floor_access: getFloorAccess('admin'),

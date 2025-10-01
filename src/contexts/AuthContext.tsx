@@ -15,8 +15,8 @@ type ErrorResult<T> = {
 };
 
 export const DEMO_USERS = [{
-  email: 'fsmith@deweycheathamhowe.com',
-  full_name: `Filipe Smith`,
+  email: 'paula@deweycheathamhowe.com',
+  full_name: `Paula Tejando`,
   department: 'Facilities Management',
   role: 'admin',
   description: 'Full access - all rooms, analytics, alerts, bookings and full sensor data access',
