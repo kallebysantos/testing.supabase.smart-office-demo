@@ -9,24 +9,12 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { Building2, Wrench, Mail, Lock, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react'
+import { Building2, Wrench, Mail, Lock, Eye, EyeOff, ChevronDown, ChevronUp, Users } from 'lucide-react'
 
-import type { UserId } from '@/types'
-import { useAuth } from '@/contexts/AuthContext'
-
-const demoUser = {
-  id: 'facilities-demo' as UserId,
-  email: 'hermione.granger@company.com',
-  full_name: 'Hermione Granger',
-  department: 'Facilities Management',
-  role: 'facilities' as const,
-  floor_access: [1, 2, 3, 4],
-  created_at: new Date().toISOString(),
-  description: 'Analytics, alerts, all bookings, full sensor data access'
-}
+import { DEMO_USERS, DemoUser, useAuth } from '@/contexts/AuthContext'
 
 export default function LoginPage() {
-  const { switchUser } = useAuth()
+  const { login, switchUser } = useAuth()
   const router = useRouter()
   const [showDemoAccounts, setShowDemoAccounts] = useState(false)
   const [isLoggingIn, setIsLoggingIn] = useState(false)
@@ -34,16 +22,29 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  const handleDemoLogin = async () => {
+  const handleDemoLogin = async (user: DemoUser) => {
     setIsLoggingIn(true)
 
-    // Simulate login process
-    setTimeout(() => {
-      switchUser(demoUser);
+    const { error } = await switchUser(user);
+    if (error) {
+      console.error(error);
+      return;
+    }
 
-      // Redirect to rooms
-      router.push('/dashboard')
-    }, 1000)
+    // Redirect to rooms
+    router.push('/dashboard')
+  }
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+
+    const { error } = await login(email, password);
+    if (error) {
+      console.error('handle login', error);
+      return;
+    }
+
+    router.push('/dashboard')
   }
 
   return (
@@ -68,55 +69,57 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
-                  disabled
-                />
+            <form className='space-y-4' onSubmit={handleLogin}>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10"
-                  disabled
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-gray-400" />
-                  ) : (
-                    <Eye className="h-4 w-4 text-gray-400" />
-                  )}
-                </Button>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10 pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-gray-400" />
+                    )}
+                  </Button>
+                </div>
+                <small className='text-xs text-muted-foreground'>
+                  Tip: demo password is <code>{`"demo123!"`}</code>
+                </small>
               </div>
-            </div>
 
-            <Button className="w-full" disabled>
-              Sign In
-            </Button>
+              <Button type="submit" className="w-full">
+                Sign In
+              </Button>
+            </form>
 
             <div className="text-center">
               <Link href="#" className="text-sm text-blue-600 hover:text-blue-500 pointer-events-none">
@@ -156,7 +159,7 @@ export default function LoginPage() {
               onClick={() => setShowDemoAccounts(!showDemoAccounts)}
               disabled={isLoggingIn}
             >
-              <span>Show Demo Account</span>
+              <span>Select a demo account</span>
               {showDemoAccounts ? (
                 <ChevronUp className="h-4 w-4" />
               ) : (
@@ -164,38 +167,33 @@ export default function LoginPage() {
               )}
             </Button>
 
-            {showDemoAccounts && (
-              <div className="space-y-3 pt-2">
-                <div className="flex flex-wrap gap-4 items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 rounded-full bg-orange-100">
-                      <Wrench className="h-5 w-5 text-orange-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{demoUser.full_name}</p>
-                      <p className="text-xs text-gray-500">{demoUser.email}</p>
-                      <Badge
-                        variant="outline"
-                        className="mt-1 text-xs bg-orange-100 text-orange-800 border-orange-200"
-                      >
-                        Facilities Manager
-                      </Badge>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {demoUser.description}
-                      </p>
+            <div className='space-y-1'>
+              {showDemoAccounts && DEMO_USERS.map(user => (
+                <div className="space-y-3 pt-2 cursor-pointer" key={user.email} onClick={() => handleDemoLogin(user)}>
+                  <div className="flex flex-wrap gap-4 items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 rounded-full bg-orange-100">
+                        {
+                          user.role === 'admin'
+                            ? (<Wrench className="h-5 w-5 text-orange-600" />)
+                            : (<Users className="h-5 w-5" />)
+                        }
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{user.full_name}</p>
+                        <p className="text-xs text-gray-500">{user.email}</p>
+                        <Badge variant={user.role === 'admin' ? 'destructive' : 'secondary'} className="gap-1">
+                          {user.department}
+                        </Badge>
+
+                        <p className="text-xs text-gray-400 mt-1">
+                          {user.description}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={handleDemoLogin}
-                    disabled={isLoggingIn}
-                    className="w-full"
-                  >
-                    {isLoggingIn ? 'Signing In...' : 'Enter Dashboard'}
-                  </Button>
                 </div>
-              </div>
-            )}
+              ))}</div>
           </CardContent>
         </Card>
 

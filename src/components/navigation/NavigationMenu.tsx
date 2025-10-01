@@ -61,7 +61,7 @@ const navigationItems: NavigationItem[] = [
   },
   {
     title: 'My Bookings',
-    href: '/my-bookings',
+    href: '/bookings',
     icon: Calendar,
     roles: ['employee'],
     description: 'Your scheduled meetings'
@@ -89,10 +89,10 @@ const navigationItems: NavigationItem[] = [
   }
 ]
 
-function NavigationLink({ item, pathname, onClick }: { 
+function NavigationLink({ item, pathname, onClick }: {
   item: NavigationItem
   pathname: string
-  onClick?: () => void 
+  onClick?: () => void
 }) {
   const isActive = pathname === item.href
   const Icon = item.icon
@@ -221,8 +221,8 @@ export default function NavigationMenu() {
                 Profile Settings
               </Button>
             </Link>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
               onClick={handleSignOut}
             >
@@ -241,10 +241,10 @@ export default function NavigationMenu() {
               <Building2 className="h-6 w-6 text-primary" />
               <h1 className="ml-2 text-lg font-semibold">Smart Office</h1>
             </div>
-            
+
             <div className="flex items-center space-x-3">
               <RoleBadge role={userProfile.role} />
-              
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm">
@@ -318,9 +318,9 @@ export default function NavigationMenu() {
       </div>
 
       {/* User Switcher Dialog */}
-      <UserSwitcherDialog 
-        open={isUserSwitcherOpen} 
-        onOpenChange={setIsUserSwitcherOpen} 
+      <UserSwitcherDialog
+        open={isUserSwitcherOpen}
+        onOpenChange={setIsUserSwitcherOpen}
       />
     </>
   )
