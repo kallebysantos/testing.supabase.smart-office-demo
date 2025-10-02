@@ -28,7 +28,7 @@ For more information, please refer to the [FEATURES.md](FEATURES.md) file.
    cp .env.example .env.local
 
    # add a functions .env.local file, add an OPENAI_API_KEY to it
-   cp supabase/functions/.env.example supabase/functions/.env.local
+   cp supabase/functions/.env.example supabase/functions/.env
    ```
 
 3. **Start a local Supabase dev environment**
