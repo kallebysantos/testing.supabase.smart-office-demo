@@ -108,7 +108,7 @@ export default function AnalyticsPage() {
       setIsLoading(true);
 
       // Simulate query performance difference
-      const baseDelay = icebergEnabled ? 200 : 350; // Iceberg: 200ms, Regular: 3.5s
+      const baseDelay = icebergEnabled ? 200 : 3500; // Iceberg: 200ms, Regular: 3.5s
 
       // Get rooms data
       const { data: roomsData, error: roomsError } = await supabase

@@ -13,6 +13,7 @@ import type {
   RoomId,
   BookingId,
   ApiResponse,
+  RoomBooking,
 } from "@/types";
 import { roomsApi } from "./rooms";
 
@@ -196,6 +197,147 @@ export class BookingsApi extends ApiClient {
         })) || [];
 
       return { data: bookingsWithRoom, error: null };
+    });
+  }
+
+  /**
+   * Create a new booking
+   */
+  async createBooking(booking: {
+    room_id: string;
+    title: string;
+    start_time: string;
+    end_time: string;
+    attendee_count?: number;
+  }): Promise<ApiResponse<RoomBooking>> {
+    return this.handleResponse(async () => {
+      // Get current user's email
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        return { data: null, error: "User not authenticated" };
+      }
+
+      // Check for booking conflicts
+      const conflictCheck = await supabase.rpc('check_booking_conflict', {
+        p_room_id: booking.room_id,
+        p_start_time: booking.start_time,
+        p_end_time: booking.end_time
+      });
+
+      if (conflictCheck.error) {
+        return { data: null, error: "Failed to check booking conflicts" };
+      }
+
+      if (!conflictCheck.data) {
+        return { data: null, error: "Room is already booked for this time slot" };
+      }
+
+      // Create the booking
+      const { data, error } = await supabase
+        .from("room_bookings")
+        .insert({
+          ...booking,
+          organizer_email: user.email,
+        })
+        .select()
+        .single();
+
+      if (error) return { data: null, error };
+
+      return { data, error: null };
+    });
+  }
+
+  /**
+   * Update an existing booking
+   */
+  async updateBooking(
+    id: BookingId,
+    updates: Partial<{
+      title: string;
+      start_time: string;
+      end_time: string;
+      attendee_count: number;
+    }>
+  ): Promise<ApiResponse<RoomBooking>> {
+    return this.handleResponse(async () => {
+      // If updating time, check for conflicts
+      if (updates.start_time || updates.end_time) {
+        const { data: currentBooking } = await supabase
+          .from("room_bookings")
+          .select("room_id, start_time, end_time")
+          .eq("id", id)
+          .single();
+
+        if (currentBooking) {
+          const conflictCheck = await supabase.rpc('check_booking_conflict', {
+            p_room_id: currentBooking.room_id,
+            p_start_time: updates.start_time || currentBooking.start_time,
+            p_end_time: updates.end_time || currentBooking.end_time,
+            p_booking_id: id
+          });
+
+          if (conflictCheck.error) {
+            return { data: null, error: "Failed to check booking conflicts" };
+          }
+
+          if (!conflictCheck.data) {
+            return { data: null, error: "Room is already booked for this time slot" };
+          }
+        }
+      }
+
+      const { data, error } = await supabase
+        .from("room_bookings")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) return { data: null, error };
+
+      return { data, error: null };
+    });
+  }
+
+  /**
+   * Cancel/delete a booking
+   */
+  async cancelBooking(id: BookingId): Promise<ApiResponse<void>> {
+    return this.handleResponse(async () => {
+      const { error } = await supabase
+        .from("room_bookings")
+        .delete()
+        .eq("id", id);
+
+      if (error) return { data: null, error };
+
+      return { data: undefined, error: null };
+    });
+  }
+
+  /**
+   * Get upcoming bookings for a room on a specific date
+   */
+  async getRoomBookingsForDate(
+    roomId: RoomId,
+    date: string
+  ): Promise<ApiResponse<RoomBooking[]>> {
+    return this.handleResponse(async () => {
+      const startOfDay = `${date}T00:00:00.000Z`;
+      const endOfDay = `${date}T23:59:59.999Z`;
+
+      const { data, error } = await supabase
+        .from("room_bookings")
+        .select("*")
+        .eq("room_id", roomId)
+        .gte("start_time", startOfDay)
+        .lte("end_time", endOfDay)
+        .order("start_time", { ascending: true });
+
+      if (error) return { data: null, error };
+
+      return { data: data || [], error: null };
     });
   }
 

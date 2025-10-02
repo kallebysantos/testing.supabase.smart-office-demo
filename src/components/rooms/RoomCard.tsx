@@ -5,12 +5,18 @@
  * responsive design and accessibility
  */
 
+'use client'
+
+import { useState } from 'react'
 import Image from 'next/image'
-import { Building2, Users, Thermometer, Volume2, Wind } from 'lucide-react'
+import { Building2, Users, Thermometer, Volume2, Wind, Calendar } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { formatTemperature, formatTime } from '@/lib/utils/format'
 import { getRoomStatusColor, getRoomStatusVariant } from '@/lib/utils/room-status'
+import { BookingModal } from './BookingModal'
+import { useAuth } from '@/contexts/AuthContext'
 import type { RoomWithSensorData } from '@/types'
 
 interface RoomCardProps {
@@ -18,18 +24,54 @@ interface RoomCardProps {
 }
 
 export function RoomCard({ room }: RoomCardProps) {
+  const { userProfile } = useAuth()
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
   const statusColor = getRoomStatusColor(room.status)
   const statusVariant = getRoomStatusVariant(room.status)
 
+  const canBook = userProfile?.role && ['employee', 'facilities', 'admin'].includes(userProfile.role)
+  const isAvailable = room.status === 'available'
+
+  const handleBookingCreated = () => {
+    // Could trigger a refetch of room data here if needed
+    // For now, just close the modal
+  }
+
   return (
-    <Card className="pt-0 overflow-hidden hover:shadow-lg transition-shadow shadow-sm">
-      <RoomImage room={room} statusColor={statusColor} />
-      <CardContent className="px-4 py-2">
-        <RoomTitle name={room.name} />
-        <RoomMetrics room={room} />
-        <RoomStatus status={room.status} variant={statusVariant} lastUpdated={room.lastUpdated} />
-      </CardContent>
-    </Card>
+    <>
+      <Card className="pt-0 overflow-hidden hover:shadow-lg transition-shadow shadow-sm">
+        <RoomImage room={room} statusColor={statusColor} />
+        <CardContent className="px-4 py-2">
+          <RoomTitle name={room.name} />
+          <RoomMetrics room={room} />
+          <RoomStatus status={room.status} variant={statusVariant} lastUpdated={room.lastUpdated} />
+          
+          {/* Booking Button */}
+          {canBook && (
+            <div className="mt-4 pt-3 border-t border-gray-100">
+              <Button
+                onClick={() => setIsBookingModalOpen(true)}
+                disabled={!isAvailable}
+                className="w-full"
+                size="sm"
+                variant={isAvailable ? "default" : "secondary"}
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                {isAvailable ? 'Book Room' : 'Room Occupied'}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Booking Modal */}
+      <BookingModal
+        room={room}
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        onBookingCreated={handleBookingCreated}
+      />
+    </>
   )
 }
 
