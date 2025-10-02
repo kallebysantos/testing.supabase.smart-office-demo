@@ -108,7 +108,7 @@ export default function AnalyticsPage() {
       setIsLoading(true);
 
       // Simulate query performance difference
-      const baseDelay = icebergEnabled ? 200 : 3500; // Iceberg: 200ms, Regular: 3.5s
+      const baseDelay = icebergEnabled ? 200 : 350; // Iceberg: 200ms, Regular: 3.5s
 
       // Get rooms data
       const { data: roomsData, error: roomsError } = await supabase
@@ -519,10 +519,10 @@ export default function AnalyticsPage() {
                 <ResponsiveContainer width="100%" height={400}>
                   <BarChart
                     data={analytics.roomUtilization.slice(0, 10)}
-                    layout="horizontal"
+                    layout="vertical"
                   >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
+                    <XAxis type="number" dataKey="avg_utilization" />
                     <YAxis
                       type="category"
                       dataKey="room_name"
